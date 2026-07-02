@@ -1,7 +1,7 @@
 import { loadSiteData, localized, normalizeCategoryOrder, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
 import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260630-production-rules";
-import { paymentConfig } from "./paymentConfig.js?v=20260617-card-only-orders";
+import { paymentConfig } from "./paymentConfig.js?v=20260702-mollie-functions";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
@@ -11,6 +11,7 @@ let unsubscribeTrackedOrder = null;
 let cart = [];
 let modalProductId = null;
 let modalQuantity = 1;
+let mollieReady = false;
 const isProduction = !["localhost", "127.0.0.1", ""].includes(window.location.hostname);
 
 if (isProduction) {
@@ -979,8 +980,9 @@ function renderCheckout() {
   $("#deliveryLabel").textContent = t("section.delivery");
   $("#checkoutNotesLabel").textContent = t("section.orderNotes");
   $("#checkoutPaymentMethodLabel").textContent = t("section.paymentMethod");
-  $("#checkoutMollieLabel").textContent = t("section.idealPayment");
-  $("#checkoutMollieNote").textContent = t("section.mollieWallets");
+  const onlineAvailable = isMollieReady();
+  $("#checkoutMollieLabel").textContent = onlineAvailable ? mollieOnlineLabel() : t("section.idealPayment");
+  $("#checkoutMollieNote").textContent = onlineAvailable ? mollieOnlineNote() : t("section.mollieWallets");
   syncPaymentAvailability();
   $("#submitOrderBtn").textContent = t("section.submitOrder");
   $("#checkoutSubtotalLabel").textContent = t("section.subtotal");
@@ -1001,8 +1003,9 @@ function renderCheckout() {
 function syncPaymentAvailability() {
   const mollieInput = document.querySelector('input[name="paymentMethod"][value="cash"], input[name="paymentMethod"][value="mollie"]');
   const mollieOption = $("#molliePaymentOption") || mollieInput?.closest("label");
+  const onlineAvailable = isMollieReady();
   if (mollieInput) {
-    mollieInput.value = "cash";
+    mollieInput.value = onlineAvailable ? "mollie" : "cash";
     mollieInput.disabled = false;
     mollieInput.checked = true;
   }
@@ -1011,7 +1014,29 @@ function syncPaymentAvailability() {
 }
 
 function normalizePaymentMethod(value) {
-  return "cash";
+  return isMollieReady() && value === "mollie" ? "mollie" : "cash";
+}
+
+function isMollieReady() {
+  return Boolean(paymentConfig.onlinePaymentsEnabled && paymentConfig.molliePaymentEndpoint && mollieReady);
+}
+
+function mollieOnlineLabel() {
+  return {
+    nl: "Online betalen met Mollie",
+    ar: "الدفع أونلاين عبر Mollie",
+    de: "Online mit Mollie bezahlen",
+    en: "Pay online with Mollie"
+  }[lang] || "Pay online with Mollie";
+}
+
+function mollieOnlineNote() {
+  return {
+    nl: "Veilig betalen met iDEAL, kaart of beschikbare wallets.",
+    ar: "ادفع بأمان بالبطاقة أو المحافظ المتاحة.",
+    de: "Sicher mit iDEAL, Karte oder verfuegbaren Wallets bezahlen.",
+    en: "Secure payment with iDEAL, card or available wallets."
+  }[lang] || "Secure payment with Mollie.";
 }
 
 function euro(value) {
@@ -1079,6 +1104,11 @@ async function submitCart(event) {
       fulfillment: orderPayload.customer.fulfillment,
       customerPhone: orderPayload.customer.phone
     });
+    if (paymentMethod === "mollie") {
+      setStatus(t("section.mollieRedirect"), false);
+      await redirectToMolliePayment(orderPayload);
+      return;
+    }
     setStatus(t("section.submitOrder"), false);
     const savedOrder = await createFirebaseOrder({
       ...orderPayload,
@@ -1320,9 +1350,25 @@ async function assertMollieReady() {
   }
   if (!response.ok) throw new Error(t("section.mollieMissingBackend"));
   const status = await response.json().catch(() => null);
-  if (!status?.mollieApiKey || !status?.firebaseServiceAccount) {
+  if (!status?.configured) {
     throw new Error(t("section.mollieMissingConfig"));
   }
+}
+
+async function refreshMollieReadiness() {
+  if (!paymentConfig.onlinePaymentsEnabled || !paymentConfig.mollieConfigStatusEndpoint) {
+    mollieReady = false;
+    renderCheckout();
+    return;
+  }
+  try {
+    const response = await fetch(paymentConfig.mollieConfigStatusEndpoint, { headers: { accept: "application/json" } });
+    const status = response.ok ? await response.json().catch(() => null) : null;
+    mollieReady = Boolean(status?.configured);
+  } catch {
+    mollieReady = false;
+  }
+  renderCheckout();
 }
 
 function setupReveal() {
@@ -1519,3 +1565,4 @@ window.addEventListener("message", (event) => {
 setupReveal();
 refreshDataAndRender();
 setupRealtime();
+refreshMollieReadiness();

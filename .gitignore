@@ -3,6 +3,9 @@ ADMIN_CREDENTIALS.md
 .env.*
 !.env.example
 node_modules/
+functions/node_modules/
 dist/
 pnpm-lock.yaml
 pnpm-workspace.yaml
+.codex-tools/
+firepit-log.txt

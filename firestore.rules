@@ -97,6 +97,10 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /mollieCheckouts/{checkoutId} {
+      allow read, write: if false;
+    }
+
     match /admins/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();

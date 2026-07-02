@@ -1,94 +1,102 @@
 # Mollie setup for Shawarma Time
 
-## What the integration does
+This project is prepared for Mollie through Firebase Functions. The Mollie API key is never used in the frontend and must never be committed to GitHub.
 
-- The customer selects "Online betalen met Mollie".
-- The website calls the Netlify function `/.netlify/functions/create-mollie-payment`.
-- The function creates a pending document in Firestore collection `mollieCheckouts`.
-- The customer is redirected to Mollie Checkout.
-- Mollie calls `/.netlify/functions/mollie-webhook` after the payment status changes.
-- If Mollie returns `paid`, the webhook creates the final order in Firestore collection `orders`.
-- The order is saved with:
-  - `paymentMethod: "mollie"`
-  - `paymentStatus: "paid"`
-  - `orderStatus: "new"`
+## What is already in the code
 
-## Required Netlify environment variables
+- Frontend checkout keeps using the current cash/test Firestore flow while Mollie is not configured.
+- Firebase Function `createMolliePayment` creates Mollie payments server-side.
+- Firebase Function `mollieWebhook` receives Mollie payment updates.
+- Firebase Function `mollieConfigStatus` tells the frontend whether Mollie is configured, without exposing the key.
+- Mollie pending checkout data is stored in Firestore collection `mollieCheckouts`.
+- A final document is created in Firestore collection `orders` only after Mollie reports `paid`.
+- Admin dashboard continues to listen to `orders`, so paid Mollie orders appear like normal orders.
 
-Add these in Netlify under Site configuration > Environment variables:
+## Firebase Secret
 
-- `MOLLIE_API_KEY`
-- `FIREBASE_SERVICE_ACCOUNT`
-- `RESEND_API_KEY`
-- `ORDER_NOTIFICATION_EMAIL`
-- `ORDER_NOTIFICATION_FROM`
-
-Optional:
-
-- `MOLLIE_PAYMENT_METHODS`
-
-Leave `MOLLIE_PAYMENT_METHODS` empty to let Mollie Checkout show every enabled payment method and wallet for the customer's device. This is recommended for iDEAL, Apple Pay, Google Pay, Visa and Mastercard support.
-
-If you want to restrict the checkout, use Mollie method IDs such as:
+The API key must be stored in Firebase Secret Manager with this exact name:
 
 ```txt
-ideal,applepay,creditcard
+MOLLIE_API_KEY
 ```
 
-Enable iDEAL, Apple Pay, Google Pay and credit card in your Mollie dashboard when available for your profile. Visa and Mastercard are handled through Mollie's credit card method. Google Pay is handled by Mollie as a wallet availability option, so do not add `googlepay` to the `method` filter.
+Use the same secret name for both test and live keys. Switching from test to live is only replacing the secret value; no code change is needed.
 
-## Firebase service account
+## Add the Mollie test API key
 
-Create the value for `FIREBASE_SERVICE_ACCOUNT` from Firebase Console:
+Run this from the repo folder after Firebase CLI login:
 
-1. Open Firebase Console.
-2. Go to Project settings > Service accounts.
-3. Generate a new private key.
-4. Copy the full JSON object into the Netlify environment variable.
+```powershell
+.\.codex-tools\firebase.exe functions:secrets:set MOLLIE_API_KEY
+```
 
-Keep this value private. Never commit it to GitHub.
+Paste the Mollie **Test API Key** from Mollie Dashboard when prompted.
+
+Then deploy Functions:
+
+```powershell
+.\.codex-tools\firebase.exe deploy --only functions
+```
+
+The frontend checks:
+
+```txt
+https://europe-west1-shawarma-time-ca124.cloudfunctions.net/mollieConfigStatus
+```
+
+If the secret exists, online payment can become available. If the secret is missing, the site stays on cash/test checkout.
+
+## Switch later to the Mollie live API key
+
+When test payments work:
+
+1. Open Mollie Dashboard.
+2. Copy the **Live API Key**.
+3. Run:
+
+```powershell
+.\.codex-tools\firebase.exe functions:secrets:set MOLLIE_API_KEY
+```
+
+4. Paste the live key.
+5. Redeploy Functions:
+
+```powershell
+.\.codex-tools\firebase.exe deploy --only functions
+```
+
+No frontend code change is required.
 
 ## Webhook URL
 
-The create-payment function sends this webhook URL to Mollie automatically:
+Configure this webhook URL in Mollie if you need to enter it manually:
 
 ```txt
-https://YOUR_NETLIFY_SITE.netlify.app/.netlify/functions/mollie-webhook
+https://europe-west1-shawarma-time-ca124.cloudfunctions.net/mollieWebhook
 ```
 
-The webhook must be publicly reachable. GitHub Pages cannot run this function.
+The create-payment function also sends this webhook URL to Mollie automatically for each payment.
 
-## Bank payouts
+## Payment flow
 
-Payouts must be connected inside your Mollie account:
+1. Customer submits checkout.
+2. Frontend calls `createMolliePayment`.
+3. Function validates and stores a pending `mollieCheckouts` document.
+4. Function creates a Mollie payment using `MOLLIE_API_KEY`.
+5. Customer is redirected to Mollie Checkout.
+6. Mollie calls `mollieWebhook`.
+7. Webhook fetches payment status from Mollie.
+8. If status is `paid`, webhook creates the final Firestore `orders` document with:
+   - `paymentMethod: "mollie"`
+   - `paymentStatus: "paid"`
+   - `orderStatus: "new"`
+   - `status: "new"`
+9. Admin dashboard receives the new order through the existing Firestore realtime listener.
 
-1. Log in to Mollie.
-2. Complete organization verification.
-3. Add the restaurant's legal/business details.
-4. Add and verify the bank account/IBAN.
-5. Activate payment methods.
-6. Enable iDEAL, Apple Pay, Google Pay, Visa and Mastercard where Mollie allows them for the profile.
-7. Set the payout schedule in Mollie.
+## Security notes
 
-This cannot be done from website code because it requires the owner's Mollie account, identity checks and bank verification.
-
-## Test payment
-
-1. Use a Mollie test API key first.
-2. Deploy this repo to Netlify.
-3. Add all environment variables.
-4. Open the Netlify production URL.
-5. Add an item to the cart.
-6. Choose "Online betalen met Mollie".
-7. Submit the checkout.
-8. Complete the test payment in Mollie Checkout.
-9. Confirm the order appears in Admin under Orders.
-
-## Production switch
-
-When testing is complete:
-
-1. Replace the test key with the live `MOLLIE_API_KEY`.
-2. Confirm payment methods are live in Mollie.
-3. Confirm bank payouts are verified.
-4. Run a small live payment.
+- `MOLLIE_API_KEY` is a Firebase Secret, not frontend config.
+- Firestore clients cannot read or write `mollieCheckouts`.
+- Public customers can only create validated cash/test orders directly.
+- Mollie paid orders are created by Firebase Admin SDK inside Functions, bypassing client write rules.
+- Admin users remain the only clients allowed to read/update `orders`.
