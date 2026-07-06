@@ -227,8 +227,12 @@
             <p><strong data-i18n="section.address">Adres</strong><span id="contactAddress"></span></p>
             <p><strong data-i18n="section.phone">Telefoon</strong><a id="contactPhone"></a></p>
           </div>
-          <a class="btn primary" id="whatsappBtn" target="_blank" rel="noopener" data-i18n="section.whatsapp">WhatsApp</a>
-          <a class="btn ghost" id="directionsBtn" target="_blank" rel="noopener" data-i18n="section.directions">Directions</a>
+          <div class="contact-actions">
+            <a class="btn primary" id="whatsappBtn" target="_blank" rel="noopener" data-i18n="section.whatsapp">WhatsApp</a>
+            <a class="btn ghost" id="callBtn" data-i18n="section.callRestaurant">Call restaurant</a>
+            <a class="btn ghost" id="directionsBtn" target="_blank" rel="noopener" data-i18n="section.directions">Directions</a>
+          </div>
+          <div class="contact-hours" id="contactHours"></div>
         </div>
         <iframe
           class="map"
@@ -253,6 +257,10 @@
         <span id="productModalCategory"></span>
         <h2 id="productModalName"></h2>
         <p id="productModalDesc"></p>
+        <div class="product-ingredients">
+          <span data-i18n="section.ingredients">Ingredients</span>
+          <p id="productModalIngredients"></p>
+        </div>
         <strong id="productModalPrice"></strong>
         <fieldset class="product-options">
           <legend data-i18n="section.addOns">Add-ons</legend>
@@ -268,6 +276,10 @@
             <button type="button" id="productQtyInc">+</button>
           </div>
         </div>
+        <label class="product-note">
+          <span data-i18n="section.itemNotes">Item notes</span>
+          <textarea id="productModalNotes" rows="3" data-i18n-placeholder="section.itemNotesPlaceholder"></textarea>
+        </label>
       </div>
       <button class="btn primary product-add-sticky" id="productAddBtn" type="button" data-i18n="section.addToBasket">Add to basket</button>
     </dialog>
@@ -283,6 +295,7 @@
         <span id="cartSubtotalLabel">Totaal</span>
         <strong id="cartSubtotal">€0,00</strong>
       </div>
+      <button class="btn ghost cart-clear" id="clearCartBtn" type="button">Clear cart</button>
       <button class="btn primary cart-checkout" id="goCheckoutBtn" type="button">Checkout</button>
     </aside>
 
@@ -301,7 +314,7 @@
       <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, met kaart betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/config.js?v=20260702-mollie-functions"></script>
-    <script type="module" src="src/app.js?v=20260702-mollie-functions"></script>
+    <script type="module" src="src/config.js?v=20260706-restaurant-ready"></script>
+    <script type="module" src="src/app.js?v=20260706-restaurant-ready"></script>
   </body>
 </html>

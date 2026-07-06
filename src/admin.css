@@ -674,6 +674,17 @@ html[dir="rtl"] .admin-sidebar nav button {
   margin-bottom: 4px;
 }
 
+.order-items p {
+  display: grid;
+  gap: 4px;
+}
+
+.order-items small {
+  display: block;
+  color: rgba(255, 244, 208, .62);
+  font-size: .8rem;
+}
+
 .order-status {
   align-self: start;
   border: 0;

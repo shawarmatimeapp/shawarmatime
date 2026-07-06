@@ -9,7 +9,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260618-fixed-category-order";
+} from "./firebaseService.js?v=20260706-restaurant-ready";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -711,7 +711,13 @@ function renderOrders() {
       </div>
       <div class="order-items">
         <span>${tr("orderItems")}</span>
-        ${order.items?.map((item) => `<p>${Number(item.quantity || 1)}x ${escapeHtml(item.name || "")} <b>${escapeHtml(item.price || "")}</b></p>`).join("") || ""}
+        ${order.items?.map((item) => `
+          <p>
+            ${Number(item.quantity || 1)}x ${escapeHtml(item.name || "")} <b>${escapeHtml(item.price || "")}</b>
+            ${item.options?.length ? `<small>${item.options.map(escapeHtml).join(", ")}</small>` : ""}
+            ${item.notes ? `<small>${escapeHtml(item.notes)}</small>` : ""}
+          </p>
+        `).join("") || ""}
       </div>
       ${order.customer?.notes ? `<p class="order-notes"><span>${tr("orderNotes")}</span>${escapeHtml(order.customer.notes)}</p>` : ""}
       <label class="order-status-field">
@@ -820,7 +826,11 @@ function printKitchenTicket(order) {
     `Phone: ${order.customer?.phone || "-"}`,
     `Type: ${order.customer?.fulfillment || "pickup"}`,
     "",
-    ...(order.items || []).map((item) => `${Number(item.quantity || 1)}x ${item.name || "Item"} ${item.price || ""}`),
+    ...(order.items || []).map((item) => [
+      `${Number(item.quantity || 1)}x ${item.name || "Item"} ${item.price || ""}`,
+      item.options?.length ? `  Options: ${item.options.join(", ")}` : "",
+      item.notes ? `  Note: ${item.notes}` : ""
+    ].filter(Boolean).join("\n")),
     "",
     `Notes: ${order.customer?.notes || "-"}`,
     `Total: ${formatOrderTotal(order.subtotal)}`

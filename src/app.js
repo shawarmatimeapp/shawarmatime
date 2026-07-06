@@ -1,6 +1,6 @@
 import { loadSiteData, localized, normalizeCategoryOrder, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260630-production-rules";
+import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260706-restaurant-ready";
 import { paymentConfig } from "./paymentConfig.js?v=20260702-mollie-functions";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
@@ -8,7 +8,9 @@ let activeCategory = "all";
 let data = loadSiteData();
 let unsubscribeRealtime = null;
 let unsubscribeTrackedOrder = null;
-let cart = [];
+const cartStorageKey = "shawarma-time-cart";
+const restaurantCheckoutOnly = true;
+let cart = loadSavedCart();
 let modalProductId = null;
 let modalQuantity = 1;
 let mollieReady = false;
@@ -422,6 +424,41 @@ const serviceInfo = {
   ]
 };
 
+const textFallbacks = {
+  nl: {
+    "section.ingredients": "Ingredienten",
+    "section.itemNotes": "Opmerking bij dit item",
+    "section.itemNotesPlaceholder": "Bijv. zonder ui, extra saus apart...",
+    "section.clearCart": "Winkelwagen legen",
+    "section.accepted": "Geaccepteerd",
+    "section.completed": "Afgerond"
+  },
+  ar: {
+    "section.ingredients": "المكونات",
+    "section.itemNotes": "ملاحظة على هذا الصنف",
+    "section.itemNotesPlaceholder": "مثلا بدون بصل أو الصلصة جانبا...",
+    "section.clearCart": "إفراغ السلة",
+    "section.accepted": "تم القبول",
+    "section.completed": "اكتمل"
+  },
+  de: {
+    "section.ingredients": "Zutaten",
+    "section.itemNotes": "Notiz zu diesem Artikel",
+    "section.itemNotesPlaceholder": "Z.B. ohne Zwiebeln, Sauce separat...",
+    "section.clearCart": "Warenkorb leeren",
+    "section.accepted": "Angenommen",
+    "section.completed": "Abgeschlossen"
+  },
+  en: {
+    "section.ingredients": "Ingredients",
+    "section.itemNotes": "Item notes",
+    "section.itemNotesPlaceholder": "Example: no onions, sauce on the side...",
+    "section.clearCart": "Clear cart",
+    "section.accepted": "Accepted",
+    "section.completed": "Completed"
+  }
+};
+
 function t(path) {
   const keys = path.split(".");
   if (keys[0] === "categories" && keys[1]) {
@@ -432,6 +469,8 @@ function t(path) {
   }
   return keys.reduce((value, key) => value?.[key], orderingUi[lang])
     || keys.reduce((value, key) => value?.[key], ui[lang])
+    || textFallbacks[lang]?.[path]
+    || textFallbacks.en[path]
     || path;
 }
 
@@ -474,6 +513,9 @@ function applyLanguage() {
   });
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
     el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
   });
   document.querySelectorAll("[data-lang]").forEach((button) => {
     button.classList.toggle("active", button.dataset.lang === lang);
@@ -718,6 +760,22 @@ function menuEmptyText() {
   }[lang] || "No valid menu items available.";
 }
 
+function hasUsableMenuItems(siteData) {
+  return Array.isArray(siteData?.menu) && siteData.menu.some(isDisplayableMenuItem);
+}
+
+function withUsableMenuData(siteData) {
+  if (hasUsableMenuItems(siteData)) return siteData;
+  const fallback = loadSiteData();
+  console.info("[Menu] Firestore menu has no displayable products; using built-in restaurant menu fallback.");
+  return {
+    ...siteData,
+    menu: fallback.menu,
+    categories: fallback.categories,
+    categoryLabels: { ...fallback.categoryLabels, ...siteData.categoryLabels }
+  };
+}
+
 function renderOffers() {
   $("#offerGrid").innerHTML = data.offers.map((offer) => `
     <article class="offer-card">
@@ -852,9 +910,15 @@ function renderContact() {
   $("#contactPhone").textContent = data.settings.phone;
   $("#contactPhone").href = phoneHref(data.settings.phone);
   $("#whatsappBtn").href = whatsappHref(data.settings.phone);
+  $("#callBtn").href = phoneHref(data.settings.phone);
   $("#floatingWhatsapp").href = whatsappHref(data.settings.phone);
   $("#successPhoneBtn").href = phoneHref(data.settings.phone);
   $("#directionsBtn").href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.settings.address)}`;
+  const days = ui[lang]?.days || ui.nl.days;
+  $("#contactHours").innerHTML = `
+    <strong>${t("section.openingHours")}</strong>
+    ${days.map((day, index) => `<p><span>${day}</span><b>${escapeHtml(data.settings.hours?.[index] || "")}</b></p>`).join("")}
+  `;
 }
 
 function openProductModal(itemId) {
@@ -868,8 +932,11 @@ function openProductModal(itemId) {
   $("#productModalCategory").textContent = t(`categories.${item.category}`);
   $("#productModalName").textContent = localized(item.name, lang);
   $("#productModalDesc").textContent = localized(item.desc, lang);
+  $("#productModalIngredients").textContent = ingredientText(item);
   $("#productModalPrice").textContent = item.price;
   $("#productQty").textContent = String(modalQuantity);
+  const notes = $("#productModalNotes");
+  if (notes) notes.value = "";
   modal.querySelectorAll(".product-options input").forEach((input) => {
     input.checked = false;
   });
@@ -890,29 +957,70 @@ function addModalProductToCart() {
   if (!modalProductId) return;
   const options = [...document.querySelectorAll("#productModal .product-options input:checked")]
     .map((input) => input.value);
-  addToCart(modalProductId, modalQuantity, options);
+  addToCart(modalProductId, modalQuantity, options, $("#productModalNotes")?.value || "");
   closeProductModal();
 }
 
-function addToCart(itemId, quantity = 1, options = []) {
+function addToCart(itemId, quantity = 1, options = [], notes = "") {
   const item = data.menu.find((entry) => entry.id === itemId);
   if (!item) return;
-  const optionKey = options.join(",");
-  const existing = cart.find((entry) => entry.id === itemId && (entry.optionKey || "") === optionKey);
+  const optionKey = [...options].sort().join(",");
+  const normalizedNotes = String(notes || "").trim().slice(0, 300);
+  const noteKey = normalizedNotes.toLowerCase();
+  const existing = cart.find((entry) => entry.id === itemId && (entry.optionKey || "") === optionKey && (entry.noteKey || "") === noteKey);
   if (existing) existing.quantity += quantity;
   else cart.push({
     id: item.id,
-    cartId: `${item.id}-${optionKey || "plain"}`,
+    cartId: `${item.id}-${optionKey || "plain"}-${noteKey || "standard"}`,
     optionKey,
+    noteKey,
     name: localized(item.name, lang),
     price: item.price,
     priceValue: priceNumber(item.price),
     image: item.image,
+    ingredients: ingredientText(item),
     quantity,
-    options
+    options,
+    notes: normalizedNotes
   });
+  saveCart();
   renderCart();
   setStatus(`${localized(item.name, lang)} ${t("section.addedToCart")}`, false);
+}
+
+function ingredientText(item) {
+  const ingredients = item?.ingredients;
+  if (Array.isArray(ingredients)) return ingredients.map((entry) => localized(entry, lang) || entry).filter(Boolean).join(", ");
+  const localizedIngredients = localized(ingredients, lang);
+  if (localizedIngredients) return localizedIngredients;
+  const description = localized(item?.desc, lang);
+  return description || menuDescriptionPlaceholder();
+}
+
+function loadSavedCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(cartStorageKey) || "[]");
+    if (!Array.isArray(saved)) return [];
+    return saved
+      .filter((item) => item?.id && Number(item.quantity) > 0)
+      .map((item) => ({
+        ...item,
+        quantity: Math.max(1, Math.min(99, Number(item.quantity || 1))),
+        priceValue: Number(item.priceValue || priceNumber(item.price)),
+        cartId: item.cartId || item.id,
+        noteKey: item.noteKey || String(item.notes || "").trim().toLowerCase()
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function saveCart() {
+  try {
+    localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+  } catch {
+    // Cart persistence is helpful, but checkout should still work if storage is unavailable.
+  }
 }
 
 function priceNumber(price) {
@@ -946,6 +1054,7 @@ function renderCart() {
           <strong>${item.name}</strong>
           <span>${item.price}</span>
           ${item.options?.length ? `<small>${item.options.map(optionLabel).join(", ")}</small>` : ""}
+          ${item.notes ? `<small>${escapeHtml(item.notes)}</small>` : ""}
           <div class="quantity-control" aria-label="${t("section.quantity")}">
             <button type="button" data-cart-dec="${encodeAttr(item.cartId || item.id)}">-</button>
             <b>${item.quantity}</b>
@@ -960,6 +1069,11 @@ function renderCart() {
   $("#cartSubtotal").textContent = euro(cartTotal());
   $("#goCheckoutBtn").textContent = t("section.goToCheckout");
   $("#goCheckoutBtn").disabled = !cart.length;
+  const clearCartBtn = $("#clearCartBtn");
+  if (clearCartBtn) {
+    clearCartBtn.textContent = t("section.clearCart");
+    clearCartBtn.disabled = !cart.length;
+  }
   $("#cartClose").setAttribute("aria-label", t("section.closeCart"));
   list.querySelectorAll("[data-cart-inc]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartInc, 1)));
   list.querySelectorAll("[data-cart-dec]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartDec, -1)));
@@ -994,6 +1108,7 @@ function renderCheckout() {
         <strong>${item.name}</strong>
         <span>${item.quantity} x ${item.price}</span>
         ${item.options?.length ? `<small>${item.options.map(optionLabel).join(", ")}</small>` : ""}
+        ${item.notes ? `<small>${escapeHtml(item.notes)}</small>` : ""}
       </div>
       <b>${euro(item.priceValue * item.quantity)}</b>
     </article>
@@ -1014,10 +1129,12 @@ function syncPaymentAvailability() {
 }
 
 function normalizePaymentMethod(value) {
+  if (restaurantCheckoutOnly) return "cash";
   return isMollieReady() && value === "mollie" ? "mollie" : "cash";
 }
 
 function isMollieReady() {
+  if (restaurantCheckoutOnly) return false;
   return Boolean(paymentConfig.onlinePaymentsEnabled && paymentConfig.molliePaymentEndpoint && mollieReady);
 }
 
@@ -1055,11 +1172,19 @@ function optionLabel(option) {
 function changeQuantity(cartId, delta) {
   cart = cart.map((item) => (item.cartId || item.id) === cartId ? { ...item, quantity: item.quantity + delta } : item)
     .filter((item) => item.quantity > 0);
+  saveCart();
   renderCart();
 }
 
 function removeFromCart(cartId) {
   cart = cart.filter((item) => (item.cartId || item.id) !== cartId);
+  saveCart();
+  renderCart();
+}
+
+function clearCart() {
+  cart = [];
+  saveCart();
   renderCart();
 }
 
@@ -1116,6 +1241,7 @@ async function submitCart(event) {
     });
     showOrderSuccess(savedOrder, cartTotal(), paymentMethod, orderPayload);
     cart = [];
+    saveCart();
     renderCart();
   } catch (error) {
     orderLog("Order submission failed", { message: error?.message || String(error) });
@@ -1188,12 +1314,13 @@ function renderTracking(order = getLastOrder()) {
     pending: t("section.orderReceived"),
     new: t("section.orderReceived"),
     confirmed: t("section.confirmed"),
-    accepted: t("section.confirmed"),
+    accepted: t("section.accepted"),
     preparing: t("section.preparing"),
     ready: t("section.readyForPickup"),
     on_the_way: t("section.onTheWay"),
     out_for_delivery: t("section.onTheWay"),
     delivered: t("section.delivered"),
+    completed: t("section.completed"),
     cancelled: t("section.cancelled")
   };
   root.innerHTML = `
@@ -1218,10 +1345,8 @@ function renderTracking(order = getLastOrder()) {
 }
 
 function trackingStatuses(fulfillment, current) {
-  if (current === "cancelled") return ["pending", "confirmed", "preparing", "cancelled"];
-  return fulfillment === "delivery"
-    ? ["pending", "confirmed", "preparing", "on_the_way", "delivered"]
-    : ["pending", "confirmed", "preparing", "ready", "delivered"];
+  if (current === "cancelled") return ["pending", "accepted", "preparing", "cancelled"];
+  return ["pending", "accepted", "preparing", "ready", "completed"];
 }
 
 function estimatedPrepTime(order) {
@@ -1230,7 +1355,7 @@ function estimatedPrepTime(order) {
 
 function remainingTime(order, current) {
   if (!order?.orderNumber) return "-";
-  if (["ready", "on_the_way", "delivered", "cancelled"].includes(current)) return "0 min";
+  if (["ready", "completed", "on_the_way", "delivered", "cancelled"].includes(current)) return "0 min";
   const created = orderTimestamp(order.createdAt);
   const totalMinutes = order?.customer?.fulfillment === "delivery" ? 40 : 30;
   const elapsed = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
@@ -1241,9 +1366,10 @@ function normalizeOrderStatus(status) {
   const value = String(status || "pending");
   const aliases = {
     new: "pending",
-    accepted: "confirmed",
-    out_for_delivery: "on_the_way",
-    completed: "delivered"
+    confirmed: "accepted",
+    out_for_delivery: "ready",
+    on_the_way: "ready",
+    delivered: "completed"
   };
   return aliases[value] || value;
 }
@@ -1356,7 +1482,7 @@ async function assertMollieReady() {
 }
 
 async function refreshMollieReadiness() {
-  if (!paymentConfig.onlinePaymentsEnabled || !paymentConfig.mollieConfigStatusEndpoint) {
+  if (restaurantCheckoutOnly || !paymentConfig.onlinePaymentsEnabled || !paymentConfig.mollieConfigStatusEndpoint) {
     mollieReady = false;
     renderCheckout();
     return;
@@ -1414,6 +1540,7 @@ function renderPaymentReturnMessage() {
     sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));
     sessionStorage.removeItem("shawarma-time-pending-online-order");
     cart = [];
+    saveCart();
     renderCart();
     renderSuccess(successData);
     setStatus(t("section.paymentSuccess"), false);
@@ -1432,10 +1559,10 @@ function getPendingOnlineOrder() {
 
 async function refreshDataAndRender() {
   try {
-    data = await fetchPublicSiteData();
+    data = withUsableMenuData(await fetchPublicSiteData());
     setStatus("", false);
   } catch {
-    data = loadSiteData();
+    data = withUsableMenuData(loadSiteData());
     setStatus("", false);
   }
   render();
@@ -1444,7 +1571,7 @@ async function refreshDataAndRender() {
 async function setupRealtime() {
   unsubscribeRealtime = await subscribeToPublicUpdates((updatedData) => {
     if (updatedData) {
-      data = updatedData;
+      data = withUsableMenuData(updatedData);
       render();
       return;
     }
@@ -1520,6 +1647,7 @@ $("#cartOpen").addEventListener("click", openCart);
 $("#mobileCartBtn").addEventListener("click", openCart);
 $("#cartClose").addEventListener("click", closeCart);
 $("#cartBackdrop").addEventListener("click", closeCart);
+$("#clearCartBtn")?.addEventListener("click", clearCart);
 $("#productModalClose")?.addEventListener("click", closeProductModal);
 $("#productQtyDec")?.addEventListener("click", () => changeModalQuantity(-1));
 $("#productQtyInc")?.addEventListener("click", () => changeModalQuantity(1));

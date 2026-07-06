@@ -367,7 +367,9 @@ function sanitizeOrderItem(item = {}) {
     priceValue: Number(item.priceValue || 0),
     quantity: Math.max(1, Math.min(99, Number(item.quantity || 1))),
     image: String(item.image || "").slice(0, 1000),
-    options: Array.isArray(item.options) ? item.options.slice(0, 12).map((option) => String(option).slice(0, 60)) : []
+    options: Array.isArray(item.options) ? item.options.slice(0, 12).map((option) => String(option).slice(0, 60)) : [],
+    notes: String(item.notes || "").trim().slice(0, 300),
+    ingredients: String(item.ingredients || "").trim().slice(0, 500)
   };
 }
 
