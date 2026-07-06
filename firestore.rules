@@ -42,7 +42,6 @@ service cloud.firestore {
         && request.resource.data.paymentStatus == "pending"
         && request.resource.data.orderStatus == "new"
         && (!request.resource.data.keys().hasAny(["status"]) || request.resource.data.status == "new")
-        && (!request.resource.data.keys().hasAny(["schemaVersion"]) || request.resource.data.schemaVersion is number)
         && request.resource.data.currency == "EUR"
         && request.resource.data.orderNumber is string
         && request.resource.data.customer is map

@@ -295,13 +295,9 @@ export async function updateFirebaseOrderStatus(orderId, status) {
 }
 
 async function uniqueOrderRef(firebase) {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const orderNumber = formatOrderNumber();
-    const ref = firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderNumber);
-    const snap = await firebase.firestoreMod.getDoc(ref);
-    if (!snap.exists()) return { orderNumber, ref };
-  }
-  throw new Error("Could not generate a unique order number.");
+  const orderNumber = formatOrderNumber();
+  const ref = firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderNumber);
+  return { orderNumber, ref };
 }
 
 async function ensureAdminDoc(uid, username, email) {
