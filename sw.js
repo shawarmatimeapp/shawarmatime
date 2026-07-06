@@ -1,9 +1,9 @@
-const CACHE_NAME = "shawarma-time-v20260706-production-audit";
+const CACHE_NAME = "shawarmatime-v20260706-repo-rename";
 const APP_SHELL = [
-  "/shawarma-time/",
-  "/shawarma-time/site.webmanifest",
-  "/shawarma-time/favicon-192x192.png",
-  "/shawarma-time/favicon-512x512.png"
+  "/shawarmatime/",
+  "/shawarmatime/site.webmanifest",
+  "/shawarmatime/favicon-192x192.png",
+  "/shawarmatime/favicon-512x512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -22,7 +22,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== location.origin || !url.pathname.startsWith("/shawarma-time/")) return;
+  if (url.origin !== location.origin || !url.pathname.startsWith("/shawarmatime/")) return;
   event.respondWith(
     fetch(request)
       .then((response) => {
@@ -30,6 +30,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match("/shawarma-time/")))
+      .catch(() => caches.match(request).then((cached) => cached || caches.match("/shawarmatime/")))
   );
 });

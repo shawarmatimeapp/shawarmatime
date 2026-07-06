@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://must66.github.io/shawarma-time/sitemap.xml
+Sitemap: https://must66.github.io/shawarmatime/sitemap.xml

@@ -2,9 +2,9 @@
   "name": "Shawarma Time",
   "short_name": "ST",
   "description": "Shawarma Time Venlo online menu, checkout and order tracking.",
-  "id": "/shawarma-time/",
-  "start_url": "/shawarma-time/",
-  "scope": "/shawarma-time/",
+  "id": "/shawarmatime/",
+  "start_url": "/shawarmatime/",
+  "scope": "/shawarmatime/",
   "lang": "nl-NL",
   "categories": ["food", "business"],
   "icons": [

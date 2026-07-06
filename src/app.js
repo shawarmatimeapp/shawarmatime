@@ -484,7 +484,7 @@ function t(path) {
 }
 
 function appBasePath() {
-  return window.location.pathname.startsWith("/shawarma-time") ? "/shawarma-time" : "";
+  return window.location.pathname.startsWith("/shawarmatime") ? "/shawarmatime" : "";
 }
 
 function currentRoute() {

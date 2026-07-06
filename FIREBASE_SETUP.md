@@ -43,7 +43,7 @@ The admin dashboard requires this config in production. It does not use browser 
 Admin URL:
 
 ```text
-https://must66.github.io/shawarma-time/admin/
+https://must66.github.io/shawarmatime/admin/
 ```
 
 Default username:
