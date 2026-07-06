@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order tracking | Shawarma Time</title>
+    <meta name="robots" content="noindex,follow" />
+    <link rel="icon" href="../favicon.ico?v=20260617-st-gold" sizes="any" />
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      params.set("route", "/track");
+      window.location.replace(`../?${params.toString()}`);
+    </script>
+  </head>
+  <body>
+    <a href="../?route=/track">Open order tracking</a>
+  </body>
+</html>

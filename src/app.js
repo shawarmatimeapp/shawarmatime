@@ -479,6 +479,8 @@ function appBasePath() {
 }
 
 function currentRoute() {
+  const requestedRoute = new URLSearchParams(window.location.search).get("route");
+  if (requestedRoute && routeSections[requestedRoute]) return requestedRoute;
   const base = appBasePath();
   let route = window.location.pathname.slice(base.length).replace(/\/+$/, "") || "/";
   if (!route.startsWith("/")) route = `/${route}`;

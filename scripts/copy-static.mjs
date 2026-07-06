@@ -12,6 +12,7 @@ const files = [
   "admin-order-alert.wav",
   "robots.txt",
   "sitemap.xml",
+  "track/index.html",
   ".nojekyll"
 ];
 
