@@ -159,6 +159,9 @@ export async function findFirebaseOrderByNumber(orderNumber) {
   if (!firebase) return null;
   const normalized = String(orderNumber || "").trim().toUpperCase();
   if (!normalized) return null;
+  const directRef = firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, normalized);
+  const directSnap = await firebase.firestoreMod.getDoc(directRef);
+  if (directSnap.exists()) return { id: directSnap.id, ...directSnap.data() };
   const queryRef = firebase.firestoreMod.query(
     firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION),
     firebase.firestoreMod.where("orderNumber", "==", normalized),
@@ -173,8 +176,9 @@ export async function findFirebaseOrderByNumber(orderNumber) {
 export async function createFirebaseOrder(orderPayload) {
   const firebase = await getFirebase();
   if (!firebase) throw new Error(CONFIG_ERROR);
-  const orderNumber = formatOrderNumber();
+  const { orderNumber, ref: orderRef } = await uniqueOrderRef(firebase);
   const order = {
+    schemaVersion: 2,
     customer: sanitizeCustomer(orderPayload.customer),
     items: (orderPayload.items || []).map(sanitizeOrderItem),
     itemCount: (orderPayload.items || []).reduce((sum, item) => sum + Number(item.quantity || 1), 0),
@@ -182,15 +186,14 @@ export async function createFirebaseOrder(orderPayload) {
     currency: "EUR",
     paymentMethod: "cash",
     paymentStatus: "pending",
-    status: "new",
     orderStatus: "new",
     orderNumber,
     source: "web-checkout",
     createdAt: firebase.firestoreMod.serverTimestamp(),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   };
-  const docRef = await firebase.firestoreMod.addDoc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION), order);
-  return { id: docRef.id, ...order, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  await firebase.firestoreMod.setDoc(orderRef, order);
+  return { id: orderRef.id, ...order, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
 
 export const createFirebaseTestOrder = createFirebaseOrder;
@@ -200,6 +203,17 @@ export async function subscribeFirebaseOrderByNumber(orderNumber, callback, onEr
   if (!firebase) return () => {};
   const normalized = String(orderNumber || "").trim().toUpperCase();
   if (!normalized) return () => {};
+  const directRef = firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, normalized);
+  const directSnap = await firebase.firestoreMod.getDoc(directRef);
+  if (directSnap.exists()) {
+    return firebase.firestoreMod.onSnapshot(
+      directRef,
+      (snapshot) => callback(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null),
+      (error) => {
+        if (onError) onError(error);
+      }
+    );
+  }
   const queryRef = firebase.firestoreMod.query(
     firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION),
     firebase.firestoreMod.where("orderNumber", "==", normalized),
@@ -275,10 +289,19 @@ export async function updateFirebaseOrderStatus(orderId, status) {
     throw new Error("Invalid order status.");
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
-    status: normalizeStatusForWrite(status),
     orderStatus: normalizeStatusForWrite(status),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   });
+}
+
+async function uniqueOrderRef(firebase) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const orderNumber = formatOrderNumber();
+    const ref = firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderNumber);
+    const snap = await firebase.firestoreMod.getDoc(ref);
+    if (!snap.exists()) return { orderNumber, ref };
+  }
+  throw new Error("Could not generate a unique order number.");
 }
 
 async function ensureAdminDoc(uid, username, email) {

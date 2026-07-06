@@ -22,6 +22,7 @@ service cloud.firestore {
 
     function isValidPublicOrderCreate() {
       return request.resource.data.keys().hasOnly([
+          "schemaVersion",
           "customer",
           "items",
           "itemCount",
@@ -39,8 +40,9 @@ service cloud.firestore {
         && request.resource.data.source == "web-checkout"
         && request.resource.data.paymentMethod == "cash"
         && request.resource.data.paymentStatus == "pending"
-        && request.resource.data.status == "new"
         && request.resource.data.orderStatus == "new"
+        && (!request.resource.data.keys().hasAny(["status"]) || request.resource.data.status == "new")
+        && (!request.resource.data.keys().hasAny(["schemaVersion"]) || request.resource.data.schemaVersion is number)
         && request.resource.data.currency == "EUR"
         && request.resource.data.orderNumber is string
         && request.resource.data.customer is map
@@ -57,6 +59,13 @@ service cloud.firestore {
         && request.resource.data.subtotal is number
         && request.resource.data.subtotal > 0
         && request.resource.data.subtotal < 10000;
+    }
+
+    function isPublicTrackableOrder(orderId) {
+      return resource != null
+        && resource.data.orderNumber is string
+        && resource.data.orderNumber == orderId
+        && orderId.matches("^ST-[A-Z0-9]+$");
     }
 
     function isValidAdminBootstrap(userId) {
@@ -92,7 +101,7 @@ service cloud.firestore {
 
     match /orders/{orderId} {
       allow create: if isValidPublicOrderCreate();
-      allow get: if isAdmin();
+      allow get: if isAdmin() || isPublicTrackableOrder(orderId);
       allow list: if isAdmin() || request.query.limit <= 1;
       allow update, delete: if isAdmin();
     }
