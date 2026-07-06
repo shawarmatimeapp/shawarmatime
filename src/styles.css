@@ -532,6 +532,30 @@ h1 {
   font-weight: 950;
 }
 
+.menu-search {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: .84rem;
+  font-weight: 950;
+}
+
+.menu-search input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(255,191,88,.18);
+  border-radius: 14px;
+  background: rgba(255,255,255,.07);
+  color: var(--text);
+  padding: 12px 14px;
+}
+
+.menu-search input:focus-visible {
+  outline: 2px solid rgba(255,191,88,.64);
+  outline-offset: 2px;
+}
+
 .menu-grid, .offer-grid, .review-grid, .featured-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

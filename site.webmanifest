@@ -1,6 +1,12 @@
 {
   "name": "Shawarma Time",
   "short_name": "ST",
+  "description": "Shawarma Time Venlo online menu, checkout and order tracking.",
+  "id": "/shawarma-time/",
+  "start_url": "/shawarma-time/",
+  "scope": "/shawarma-time/",
+  "lang": "nl-NL",
+  "categories": ["food", "business"],
   "icons": [
     {
       "src": "favicon-32x32.png?v=20260617-st-gold",
@@ -14,6 +20,12 @@
       "purpose": "any maskable"
     },
     {
+      "src": "favicon-512x512.png?v=20260706-production-audit",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "apple-touch-icon.png?v=20260617-st-gold",
       "sizes": "192x192",
       "type": "image/png"
@@ -21,5 +33,6 @@
   ],
   "theme_color": "#2a1208",
   "background_color": "#2a1208",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "portrait-primary"
 }

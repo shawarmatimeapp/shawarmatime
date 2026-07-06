@@ -5,6 +5,7 @@ import { paymentConfig } from "./paymentConfig.js?v=20260702-mollie-functions";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
+let menuSearch = "";
 let data = loadSiteData();
 let unsubscribeRealtime = null;
 let unsubscribeTrackedOrder = null;
@@ -430,6 +431,8 @@ const textFallbacks = {
     "section.itemNotes": "Opmerking bij dit item",
     "section.itemNotesPlaceholder": "Bijv. zonder ui, extra saus apart...",
     "section.clearCart": "Winkelwagen legen",
+    "section.searchMenu": "Zoek in menu",
+    "section.searchMenuPlaceholder": "Zoek gerecht, categorie of ingredient...",
     "section.accepted": "Geaccepteerd",
     "section.completed": "Afgerond"
   },
@@ -438,6 +441,8 @@ const textFallbacks = {
     "section.itemNotes": "ملاحظة على هذا الصنف",
     "section.itemNotesPlaceholder": "مثلا بدون بصل أو الصلصة جانبا...",
     "section.clearCart": "إفراغ السلة",
+    "section.searchMenu": "البحث في القائمة",
+    "section.searchMenuPlaceholder": "ابحث عن طبق أو فئة أو مكونات...",
     "section.accepted": "تم القبول",
     "section.completed": "اكتمل"
   },
@@ -446,6 +451,8 @@ const textFallbacks = {
     "section.itemNotes": "Notiz zu diesem Artikel",
     "section.itemNotesPlaceholder": "Z.B. ohne Zwiebeln, Sauce separat...",
     "section.clearCart": "Warenkorb leeren",
+    "section.searchMenu": "Menue durchsuchen",
+    "section.searchMenuPlaceholder": "Gericht, Kategorie oder Zutaten suchen...",
     "section.accepted": "Angenommen",
     "section.completed": "Abgeschlossen"
   },
@@ -454,6 +461,8 @@ const textFallbacks = {
     "section.itemNotes": "Item notes",
     "section.itemNotesPlaceholder": "Example: no onions, sauce on the side...",
     "section.clearCart": "Clear cart",
+    "section.searchMenu": "Search menu",
+    "section.searchMenuPlaceholder": "Search dish, category, or ingredients...",
     "section.accepted": "Accepted",
     "section.completed": "Completed"
   }
@@ -695,7 +704,7 @@ function itemCard(item) {
 }
 
 function renderMenu() {
-  const availableItems = data.menu.filter(isDisplayableMenuItem);
+  const availableItems = data.menu.filter(isDisplayableMenuItem).filter(matchesMenuSearch);
   const root = $("#menuGrid");
   if (activeCategory === "all") {
     root.classList.add("grouped");
@@ -734,6 +743,27 @@ function renderMenu() {
       openProductModal(card.dataset.productOpen);
     });
   });
+}
+
+function matchesMenuSearch(item) {
+  const query = menuSearch.trim().toLowerCase();
+  if (!query) return true;
+  return [
+    localized(item.name, lang),
+    localized(item.desc, lang),
+    localized(item.name, "nl"),
+    localized(item.name, "en"),
+    localized(item.name, "de"),
+    localized(item.name, "ar"),
+    localized(item.desc, "nl"),
+    localized(item.desc, "en"),
+    localized(item.desc, "de"),
+    localized(item.desc, "ar"),
+    ingredientText(item),
+    t(`categories.${item.category}`),
+    item.category,
+    item.badge
+  ].join(" ").toLowerCase().includes(query);
 }
 
 function isDisplayableMenuItem(item) {
@@ -1656,6 +1686,10 @@ $("#productQtyInc")?.addEventListener("click", () => changeModalQuantity(1));
 $("#productAddBtn")?.addEventListener("click", addModalProductToCart);
 $("#productModal")?.addEventListener("click", (event) => {
   if (event.target.id === "productModal") closeProductModal();
+});
+$("#menuSearch")?.addEventListener("input", (event) => {
+  menuSearch = event.target.value || "";
+  renderMenu();
 });
 $("#goCheckoutBtn").addEventListener("click", () => {
   if (!cart.length) {

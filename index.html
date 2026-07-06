@@ -6,6 +6,7 @@
     <meta name="description" content="Shawarma Time in Venlo: Syrian and Lebanese luxury shawarma showcase with halal grill, broasted chicken, kapsalon, falafel, offers and opening hours." />
     <meta name="keywords" content="Shawarma Venlo, Arabisch restaurant Venlo, Halal food Venlo, Shawarma Time, kapsalon Venlo, broasted chicken Venlo" />
     <meta name="theme-color" content="#0b0504" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta property="og:title" content="Shawarma Time" />
     <meta property="og:description" content="Syrian and Lebanese luxury shawarma, grill and halal food showcase in Venlo." />
     <meta property="og:type" content="restaurant.restaurant" />
@@ -112,6 +113,10 @@
               </div>
             </div>
             <div class="category-tabs" id="categoryTabs" aria-label="Food categories"></div>
+            <label class="menu-search" for="menuSearch">
+              <span data-i18n="section.searchMenu">Search menu</span>
+              <input id="menuSearch" type="search" autocomplete="off" data-i18n-placeholder="section.searchMenuPlaceholder" />
+            </label>
             <div class="menu-grid" id="menuGrid"></div>
           </div>
         </div>
@@ -252,7 +257,7 @@
 
     <dialog class="product-modal" id="productModal">
       <button class="lightbox-close" id="productModalClose" type="button" data-i18n-aria="section.close">x</button>
-      <img id="productModalImage" alt="" />
+      <img id="productModalImage" alt="Shawarma Time menu item" />
       <div class="product-modal-body">
         <span id="productModalCategory"></span>
         <h2 id="productModalName"></h2>
@@ -316,5 +321,12 @@
 
     <script type="module" src="src/config.js?v=20260706-restaurant-ready"></script>
     <script type="module" src="src/app.js?v=20260706-restaurant-ready"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/shawarma-time/sw.js").catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>
