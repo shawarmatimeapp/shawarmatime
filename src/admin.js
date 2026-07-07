@@ -25,7 +25,7 @@ const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 let adminLang = localStorage.getItem("shawarma-time-admin-lang") || "nl";
 
 const $ = (selector) => document.querySelector(selector);
-const langs = ["nl", "ar", "de"];
+const langs = ["nl", "ar", "de", "en"];
 const days = ui.nl.days;
 
 const adminText = {

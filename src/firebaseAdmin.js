@@ -22,7 +22,7 @@ const temporaryAdminCredentials = {
 
 let siteData = loadSiteData();
 let adminLang = localStorage.getItem(adminLangKey) || "nl";
-if (!["nl", "ar", "de"].includes(adminLang)) adminLang = "nl";
+if (!langs.includes(adminLang)) adminLang = "nl";
 let currentSession;
 let orders = [];
 let unsubscribeOrders = null;
@@ -362,6 +362,114 @@ const adminText = {
     loggedOut: "Ausgeloggt.",
     loginFailed: "Login fehlgeschlagen.",
     firebaseMissing: "Firebase-Konfiguration fehlt. Füge die bestehende Firebase-Projektkonfiguration hinzu, bevor du dich einloggst."
+  },
+  en: {
+    brandAdmin: "Admin",
+    brandCms: "Firebase CMS",
+    loginTitle: "Secure admin login",
+    username: "Username",
+    password: "Password",
+    login: "Log in",
+    logout: "Log out",
+    navDashboard: "Dashboard",
+    navOrders: "Orders",
+    navHome: "Home",
+    navMenu: "Menu",
+    navOffers: "Offers",
+    navReviews: "Reviews",
+    navBanners: "Banners",
+    navGallery: "Gallery",
+    navContact: "Contact",
+    navHours: "Opening hours",
+    navSettings: "Settings",
+    navNotifications: "Notifications",
+    navCategories: "Categories",
+    protectedDashboard: "Protected dashboard",
+    viewWebsite: "View website",
+    dashboardTitle: "Dashboard",
+    homeTitle: "Homepage banners",
+    ordersTitle: "Orders",
+    ordersNote: "New orders appear here automatically.",
+    ordersError: "Orders could not be loaded:",
+    noOrders: "No orders yet.",
+    orderCustomer: "Customer",
+    orderPhone: "Phone",
+    orderNotes: "Note",
+    orderItems: "Items",
+    orderTotal: "Total",
+    orderStatus: "Status",
+    paymentMethod: "Payment method",
+    paymentStatus: "Payment status",
+    paymentCash: "Cash",
+    paymentRestaurant: "At restaurant",
+    paymentStripe: "Stripe",
+    paymentMollie: "Mollie",
+    paymentPaid: "Paid",
+    paymentPending: "Pending",
+    paymentUnpaid: "Unpaid",
+    orderNew: "New",
+    orderPreparing: "Preparing",
+    orderCompleted: "Completed",
+    menuTitle: "Menu items",
+    offersTitle: "Offers",
+    reviewsTitle: "Reviews",
+    bannersTitle: "Banners",
+    galleryTitle: "Gallery",
+    contactTitle: "Restaurant information",
+    hoursTitle: "Opening hours",
+    settingsTitle: "Settings",
+    notificationsTitle: "Notifications",
+    categoriesTitle: "Categories",
+    notificationsNote: "Saving, deleting and uploading show notifications at the top right.",
+    saveHome: "Save home",
+    saveContact: "Save contact",
+    saveSettings: "Save settings",
+    saveHours: "Save opening hours",
+    addItem: "Add item",
+    addOffer: "Add offer",
+    addBanner: "Add banner",
+    addPhoto: "Add photo",
+    addReview: "Add review",
+    addCategory: "Add category",
+    categorySlug: "Category code",
+    role: "Role",
+    title: "Title",
+    slogan: "Slogan",
+    intro: "Intro",
+    about: "About us",
+    heroImage: "Hero image",
+    phone: "Phone",
+    address: "Address",
+    whatsappMessage: "WhatsApp message",
+    instagramUrl: "Instagram URL",
+    tiktokUrl: "TikTok URL",
+    facebookUrl: "Facebook URL",
+    category: "Category",
+    available: "Available",
+    badge: "Badge",
+    none: "None",
+    type: "Type",
+    price: "Price",
+    rating: "Rating",
+    name: "Name",
+    description: "Description",
+    bannerText: "Banner text",
+    uploadImage: "Upload image",
+    uploadHint: "Drop an image here or tap to choose. JPG, PNG, WEBP - max 5MB",
+    save: "Save",
+    delete: "Delete",
+    saved: "Saved",
+    saveFailed: "Save failed",
+    homepageSaved: "Homepage saved",
+    contactSaved: "Restaurant information saved",
+    hoursSaved: "Opening hours saved",
+    deleted: "Deleted",
+    imageUploaded: "Image uploaded",
+    uploadFailed: "Upload failed",
+    cloudinaryMissing: "Cloudinary is not configured. Add cloudName and uploadPreset in src/cloudinaryConfig.js.",
+    loggedOut: "Logged out.",
+    loginFailed: "Login failed.",
+    firebaseMissing: "Firebase configuration is missing. Add the existing Firebase project configuration before logging in."
   }
 };
 
@@ -1131,7 +1239,7 @@ function renderContact() {
 }
 
 function renderHours() {
-  const days = ui[adminLang].days || ui.nl.days;
+  const days = ui[adminLang]?.days || ui.nl.days;
   $("#hoursForm").innerHTML = `
     <div class="hours-editor">
       ${days.map((day, index) => `
@@ -1313,12 +1421,14 @@ function categorySelect(item) {
 
 function categoryLabelAdmin(category) {
   return siteData.categoryLabels?.[category]?.[adminLang]
-    || ui[adminLang].categories[category]
+    || ui[adminLang]?.categories?.[category]
+    || ui.nl.categories[category]
     || category;
 }
 
 function badgeSelect(item) {
-  return `<label><span>${tr("badge")}</span><select data-field="badge">${badgeOptions.map((badge) => `<option value="${badge}" ${item.badge === badge ? "selected" : ""}>${badge ? (ui[adminLang].badges[badge] || badge) : tr("none")}</option>`).join("")}</select></label>`;
+  const badges = ui[adminLang]?.badges || ui.nl.badges;
+  return `<label><span>${tr("badge")}</span><select data-field="badge">${badgeOptions.map((badge) => `<option value="${badge}" ${item.badge === badge ? "selected" : ""}>${badge ? (badges[badge] || badge) : tr("none")}</option>`).join("")}</select></label>`;
 }
 
 async function uploadToField(file, item, fieldName, folder) {
