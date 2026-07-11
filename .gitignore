@@ -4,6 +4,7 @@ ADMIN_CREDENTIALS.md
 !.env.example
 node_modules/
 functions/node_modules/
+__pycache__/
 dist/
 pnpm-lock.yaml
 pnpm-workspace.yaml

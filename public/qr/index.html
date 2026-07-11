@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shawarma Time QR Menu</title>
+    <style>
+      :root {
+        --gold: #f5c542;
+        --orange: #b45309;
+        --brown: #2b1309;
+        --paper: #fffdf8;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f3eee7;
+        color: var(--brown);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .sheet {
+        width: min(100%, 148mm);
+        min-height: min(100vh, 210mm);
+        padding: 16mm 12mm;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 7mm;
+        background: var(--paper);
+        text-align: center;
+      }
+
+      .brand {
+        margin: 0;
+        font-size: clamp(2rem, 10vw, 3.4rem);
+        line-height: 1;
+        color: var(--brown);
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: clamp(1.15rem, 5vw, 1.6rem);
+        font-weight: 700;
+        color: var(--orange);
+      }
+
+      .qr {
+        width: min(78vw, 105mm);
+        aspect-ratio: 1;
+        display: block;
+        image-rendering: pixelated;
+      }
+
+      .url {
+        width: 100%;
+        margin: 0;
+        overflow-wrap: anywhere;
+        font-size: clamp(0.82rem, 3.4vw, 1rem);
+        line-height: 1.35;
+      }
+
+      .accent {
+        width: 34mm;
+        height: 2mm;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--gold), var(--orange));
+      }
+
+      @page {
+        size: A5;
+        margin: 0;
+      }
+
+      @media print {
+        body { background: #fff; }
+        .sheet {
+          width: 148mm;
+          min-height: 210mm;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="sheet">
+      <h1 class="brand">Shawarma Time</h1>
+      <div class="accent" aria-hidden="true"></div>
+      <p class="subtitle">Scan to view menu</p>
+      <img class="qr" src="./shawarmatime-menu-orange.png" alt="QR code for the Shawarma Time website menu" />
+      <p class="url">https://shawarmatimeapp.github.io/shawarmatime/index.html</p>
+    </main>
+  </body>
+</html>
