@@ -38,8 +38,16 @@ service cloud.firestore {
           "updatedAt"
         ])
         && request.resource.data.source == "web-checkout"
-        && request.resource.data.paymentMethod == "cash"
-        && request.resource.data.paymentStatus == "pending"
+        && (
+          (
+            request.resource.data.paymentMethod == "offline"
+            && request.resource.data.paymentStatus == "not_required"
+          )
+          || (
+            request.resource.data.paymentMethod == "cash"
+            && request.resource.data.paymentStatus == "pending"
+          )
+        )
         && request.resource.data.orderStatus == "new"
         && (!request.resource.data.keys().hasAny(["status"]) || request.resource.data.status == "new")
         && request.resource.data.currency == "EUR"

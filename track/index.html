@@ -6,13 +6,26 @@
     <title>Order tracking | Shawarma Time</title>
     <meta name="robots" content="noindex,follow" />
     <link rel="icon" href="../favicon.ico?v=20260617-st-gold" sizes="any" />
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      params.set("route", "/track");
-      window.location.replace(`../?${params.toString()}`);
-    </script>
+    <style>
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #0b0504;
+        color: #fff8e8;
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+        padding: 24px;
+      }
+      main { max-width: 520px; }
+      a { color: #f5c542; font-weight: 700; }
+    </style>
   </head>
   <body>
-    <a href="../?route=/track">Open order tracking</a>
+    <main>
+      <h1>Order tracking is temporarily unavailable.</h1>
+      <p><a href="../">Return to Shawarma Time</a></p>
+    </main>
   </body>
 </html>

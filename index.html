@@ -67,7 +67,7 @@
         <a href="./" data-route="/" data-i18n="nav.home">Home</a>
         <a href="./menu" data-route="/menu" data-i18n="nav.menu">Menu</a>
         <a href="./checkout" data-route="/checkout" data-i18n="section.checkout">Checkout</a>
-        <a href="./track" data-route="/track" data-i18n="section.trackOrder">Track</a>
+        <a href="./track" data-route="/track" data-feature="order-tracking" data-i18n="section.trackOrder" hidden>Track</a>
         <a href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
       </nav>
       <div class="language-switcher" aria-label="Language switcher">
@@ -127,7 +127,7 @@
           <div class="checkout-main">
             <p class="eyebrow" data-i18n="section.checkoutEyebrow">Secure checkout</p>
             <h2 data-i18n="section.checkoutTitle">Complete your order</h2>
-            <p class="checkout-intro" data-i18n="section.checkoutIntro">Enter your details, choose a payment method and confirm your order.</p>
+            <p class="checkout-intro" data-i18n="section.checkoutIntro">Enter your details and confirm your order.</p>
             <form class="checkout-form" id="checkoutForm">
               <div class="form-row">
                 <label><span id="checkoutNameLabel">Naam</span><input name="name" autocomplete="name" required /></label>
@@ -150,14 +150,7 @@
               </fieldset>
               <label><span id="checkoutAddressLabel">Adres</span><input name="address" autocomplete="street-address" /></label>
               <label><span id="checkoutNotesLabel">Opmerking</span><textarea name="notes"></textarea></label>
-              <fieldset class="payment-methods checkout-payments">
-                <legend id="checkoutPaymentMethodLabel">Betaalmethode</legend>
-                <label id="molliePaymentOption">
-                  <input type="radio" name="paymentMethod" value="cash" checked />
-                  <span id="checkoutMollieLabel">Cash / test checkout</span>
-                  <small id="checkoutMollieNote">Tijdelijk: bestelling direct testen en betalen bij afhalen.</small>
-                </label>
-              </fieldset>
+              <p class="payment-methods checkout-payments" id="checkoutPaymentUnavailable">Online payment is currently unavailable. We will contact you to confirm the order.</p>
               <button class="btn primary checkout-submit" id="submitOrderBtn" type="submit">Bestelling versturen</button>
             </form>
           </div>
@@ -188,7 +181,7 @@
           <div class="success-summary" id="successSummary"></div>
           <p id="successMessage"></p>
           <div class="hero-actions">
-            <a class="btn primary" href="./track" data-route="/track" data-i18n="section.trackOrder">Track order</a>
+            <a class="btn primary" href="./track" data-route="/track" data-feature="order-tracking" data-i18n="section.trackOrder" hidden>Track order</a>
             <a class="btn primary" href="./menu" data-route="/menu" data-i18n="section.backToMenu">Back to menu</a>
             <a class="btn ghost" id="successPhoneBtn" href="tel:0638081382" data-i18n="section.callRestaurant">Call restaurant</a>
           </div>
@@ -207,7 +200,7 @@
         </div>
       </section>
 
-      <section id="track" class="section track-section reveal">
+      <section id="track" class="section track-section reveal" data-feature="order-tracking" hidden>
         <div class="section-head">
           <div>
             <p class="eyebrow" data-i18n="section.trackEyebrow">Order status</p>
@@ -215,6 +208,7 @@
           </div>
         </div>
         <div class="track-card">
+          <p class="form-note" id="trackingDisabledMessage">Order tracking is temporarily unavailable.</p>
           <form class="track-form" id="trackForm">
             <label><span data-i18n="section.orderNumber">Order number</span><input name="orderNumber" placeholder="ST-123ABC" /></label>
             <button class="btn primary" type="submit" data-i18n="section.trackOrder">Track order</button>

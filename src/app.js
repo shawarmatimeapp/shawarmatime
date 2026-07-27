@@ -2,6 +2,7 @@ import { loadSiteData, localized, normalizeCategoryOrder, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
 import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260706-restaurant-ready";
 import { paymentConfig } from "./paymentConfig.js?v=20260702-mollie-functions";
+import { featureFlags } from "./featureFlags.js";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
@@ -41,6 +42,9 @@ const routeSections = {
   "/track": "track",
   "/contact": "contact"
 };
+const enabledRouteSections = () => Object.fromEntries(
+  Object.entries(routeSections).filter(([route]) => route !== "/track" || featureFlags.orderTrackingEnabled)
+);
 const orderingUi = {
   nl: {
     badges: {
@@ -58,12 +62,13 @@ const orderingUi = {
       trackOrder: "Volg bestelling",
       checkoutEyebrow: "Veilig bestellen",
       checkoutTitle: "Rond je bestelling af",
-      checkoutIntro: "Vul je gegevens in, kies je betaalmethode en bevestig je bestelling.",
+      checkoutIntro: "Vul je gegevens in en bevestig je bestelling.",
       yourOrder: "Jouw bestelling",
       addMore: "Meer toevoegen",
       goToCheckout: "Naar checkout",
       idealPayment: "Cash / test checkout",
       mollieWallets: "Tijdelijk: bestelling direct testen en betalen bij afhalen.",
+      paymentTemporarilyUnavailable: "Online betalen is momenteel niet beschikbaar. We nemen contact met je op om de bestelling te bevestigen.",
       customerEmail: "E-mail",
       customerAddress: "Adres",
       preferredTime: "Gewenste tijd",
@@ -102,6 +107,7 @@ const orderingUi = {
       liveTracking: "Live status",
       trackingHint: "Vul je ordernummer in of plaats een bestelling om de status te zien.",
       trackingNotFound: "We konden dit ordernummer niet vinden. Controleer het nummer of bel het restaurant.",
+      trackingUnavailable: "Bestelling volgen is tijdelijk niet beschikbaar.",
       directions: "Route",
       openNow: "Nu open",
       closedNow: "Nu gesloten",
@@ -131,12 +137,13 @@ const orderingUi = {
       trackOrder: "تتبع الطلب",
       checkoutEyebrow: "طلب آمن",
       checkoutTitle: "أكمل طلبك",
-      checkoutIntro: "أدخل بياناتك، اختر طريقة الدفع وأكد طلبك.",
+      checkoutIntro: "أدخل بياناتك وأكد طلبك.",
       yourOrder: "طلبك",
       addMore: "أضف المزيد",
       goToCheckout: "إلى الدفع",
       idealPayment: "Cash / test checkout",
       mollieWallets: "Temporary: create the order now and pay at pickup.",
+      paymentTemporarilyUnavailable: "الدفع الإلكتروني غير متاح حاليًا. سيتم التواصل معك لتأكيد الطلب.",
       customerEmail: "البريد الإلكتروني",
       customerAddress: "العنوان",
       preferredTime: "الوقت المفضل",
@@ -175,6 +182,7 @@ const orderingUi = {
       liveTracking: "تتبع مباشر",
       trackingHint: "أدخل رقم الطلب أو قم بإنشاء طلب لمتابعة الحالة.",
       trackingNotFound: "لم نتمكن من العثور على رقم الطلب. تحقق من الرقم أو اتصل بالمطعم.",
+      trackingUnavailable: "تتبع الطلب غير متاح مؤقتًا.",
       directions: "الاتجاهات",
       openNow: "مفتوح الآن",
       closedNow: "مغلق الآن",
@@ -204,12 +212,13 @@ const orderingUi = {
       trackOrder: "Bestellung verfolgen",
       checkoutEyebrow: "Sicher bestellen",
       checkoutTitle: "Bestellung abschliessen",
-      checkoutIntro: "Gib deine Daten ein, waehle die Zahlung und bestaetige die Bestellung.",
+      checkoutIntro: "Gib deine Daten ein und bestaetige die Bestellung.",
       yourOrder: "Deine Bestellung",
       addMore: "Mehr hinzufuegen",
       goToCheckout: "Zum Checkout",
       idealPayment: "Cash / test checkout",
       mollieWallets: "Voruebergehend: Bestellung direkt testen und bei Abholung bezahlen.",
+      paymentTemporarilyUnavailable: "Online-Zahlung ist derzeit nicht verfügbar. Wir kontaktieren Sie zur Bestätigung der Bestellung.",
       customerEmail: "E-Mail",
       customerAddress: "Adresse",
       preferredTime: "Gewuenschte Zeit",
@@ -248,6 +257,7 @@ const orderingUi = {
       liveTracking: "Live-Status",
       trackingHint: "Gib deine Bestellnummer ein oder erstelle eine Bestellung, um den Status zu sehen.",
       trackingNotFound: "Diese Bestellnummer wurde nicht gefunden. Bitte pruefe die Nummer oder rufe das Restaurant an.",
+      trackingUnavailable: "Bestellverfolgung ist voruebergehend nicht verfuegbar.",
       directions: "Route",
       openNow: "Jetzt geoeffnet",
       closedNow: "Jetzt geschlossen",
@@ -308,7 +318,7 @@ const orderingUi = {
       trackOrder: "Track",
       checkoutEyebrow: "Secure ordering",
       checkoutTitle: "Complete your order",
-      checkoutIntro: "Enter your details, choose payment and confirm your order.",
+      checkoutIntro: "Enter your details and confirm your order.",
       yourOrder: "Your order",
       addMore: "Add more",
       goToCheckout: "Go to checkout",
@@ -326,6 +336,7 @@ const orderingUi = {
       paymentMethod: "Payment method",
       idealPayment: "Cash / test checkout",
       mollieWallets: "Temporary: create the order now and pay at pickup.",
+      paymentTemporarilyUnavailable: "Online payment is currently unavailable. We will contact you to confirm the order.",
       cashOnDelivery: "Online payment only",
       payAtRestaurant: "Online payment only",
       submitOrder: "Submit order",
@@ -372,6 +383,7 @@ const orderingUi = {
       liveTracking: "Live status",
       trackingHint: "Enter your order number or place an order to see the status.",
       trackingNotFound: "We could not find this order number. Please check it or call the restaurant.",
+      trackingUnavailable: "Order tracking is temporarily unavailable.",
       directions: "Directions",
       openNow: "Open now",
       closedNow: "Closed now",
@@ -489,11 +501,12 @@ function appBasePath() {
 
 function currentRoute() {
   const requestedRoute = new URLSearchParams(window.location.search).get("route");
-  if (requestedRoute && routeSections[requestedRoute]) return requestedRoute;
+  const routes = enabledRouteSections();
+  if (requestedRoute && routes[requestedRoute]) return requestedRoute;
   const base = appBasePath();
   let route = window.location.pathname.slice(base.length).replace(/\/+$/, "") || "/";
   if (!route.startsWith("/")) route = `/${route}`;
-  return routeSections[route] ? route : "/";
+  return routes[route] ? route : "/";
 }
 
 function routeUrl(route) {
@@ -502,13 +515,13 @@ function routeUrl(route) {
 }
 
 function navigateToRoute(route, behavior = "smooth") {
-  if (!routeSections[route]) return;
+  if (!enabledRouteSections()[route]) return;
   window.history.pushState({ route }, "", routeUrl(route));
   scrollToRoute(route, behavior);
 }
 
 function scrollToRoute(route = currentRoute(), behavior = "smooth") {
-  const section = document.getElementById(routeSections[route] || "home");
+  const section = document.getElementById(enabledRouteSections()[route] || "home");
   if (!section) return;
   section.scrollIntoView({ behavior, block: "start" });
   document.querySelectorAll("[data-route]").forEach((link) => {
@@ -531,6 +544,7 @@ function applyLanguage() {
   document.querySelectorAll("[data-lang]").forEach((button) => {
     button.classList.toggle("active", button.dataset.lang === lang);
   });
+  applyFeatureFlags();
   document.querySelectorAll("[data-section-text]").forEach((el) => {
     el.textContent = orderingUi[lang]?.sectionText?.[el.dataset.sectionText]
       || localized(data.sectionText?.[el.dataset.sectionText], lang)
@@ -538,6 +552,14 @@ function applyLanguage() {
       || el.textContent;
   });
   renderCart();
+}
+
+function applyFeatureFlags() {
+  document.querySelectorAll('[data-feature="order-tracking"]').forEach((el) => {
+    el.hidden = !featureFlags.orderTrackingEnabled;
+  });
+  const trackingDisabled = $("#trackingDisabledMessage");
+  if (trackingDisabled) trackingDisabled.textContent = t("section.trackingUnavailable");
 }
 
 function phoneHref(phone) {
@@ -1125,10 +1147,8 @@ function renderCheckout() {
   $("#pickupLabel").textContent = t("section.pickup");
   $("#deliveryLabel").textContent = t("section.delivery");
   $("#checkoutNotesLabel").textContent = t("section.orderNotes");
-  $("#checkoutPaymentMethodLabel").textContent = t("section.paymentMethod");
-  const onlineAvailable = isMollieReady();
-  $("#checkoutMollieLabel").textContent = onlineAvailable ? mollieOnlineLabel() : t("section.idealPayment");
-  $("#checkoutMollieNote").textContent = onlineAvailable ? mollieOnlineNote() : t("section.mollieWallets");
+  const checkoutPaymentMessage = $("#checkoutPaymentUnavailable");
+  if (checkoutPaymentMessage) checkoutPaymentMessage.textContent = t("section.paymentTemporarilyUnavailable");
   syncPaymentAvailability();
   $("#submitOrderBtn").textContent = t("section.submitOrder");
   $("#checkoutSubtotalLabel").textContent = t("section.subtotal");
@@ -1148,6 +1168,10 @@ function renderCheckout() {
 }
 
 function syncPaymentAvailability() {
+  if (!featureFlags.paymentsEnabled) {
+    if ($("#submitOrderBtn")) $("#submitOrderBtn").disabled = false;
+    return;
+  }
   const mollieInput = document.querySelector('input[name="paymentMethod"][value="cash"], input[name="paymentMethod"][value="mollie"]');
   const mollieOption = $("#molliePaymentOption") || mollieInput?.closest("label");
   const onlineAvailable = isMollieReady();
@@ -1161,11 +1185,13 @@ function syncPaymentAvailability() {
 }
 
 function normalizePaymentMethod(value) {
+  if (!featureFlags.paymentsEnabled) return "offline";
   if (restaurantCheckoutOnly) return "cash";
   return isMollieReady() && value === "mollie" ? "mollie" : "cash";
 }
 
 function isMollieReady() {
+  if (!featureFlags.paymentsEnabled) return false;
   if (restaurantCheckoutOnly) return false;
   return Boolean(paymentConfig.onlinePaymentsEnabled && paymentConfig.molliePaymentEndpoint && mollieReady);
 }
@@ -1253,7 +1279,9 @@ async function submitCart(event) {
         preferredTime: form.get("preferredTime"),
         notes: form.get("notes")
       },
-      paymentMethod
+      paymentMethod,
+      paymentStatus: featureFlags.paymentsEnabled ? "pending" : "not_required",
+      orderStatus: "new"
     };
     orderLog("Order payload created", {
       itemCount: orderPayload.items.length,
@@ -1261,7 +1289,7 @@ async function submitCart(event) {
       fulfillment: orderPayload.customer.fulfillment,
       customerPhone: orderPayload.customer.phone
     });
-    if (paymentMethod === "mollie") {
+    if (featureFlags.paymentsEnabled && paymentMethod === "mollie") {
       setStatus(t("section.mollieRedirect"), false);
       await redirectToMolliePayment(orderPayload);
       return;
@@ -1324,13 +1352,13 @@ function renderSuccess(successData = getLastOrder()) {
 
 function paymentStatusText(status) {
   const labels = {
-    paid: lang === "ar" ? "مدفوع" : lang === "de" ? "Bezahlt" : lang === "en" ? "Paid" : "Betaald",
-    pending: lang === "ar" ? "قيد الانتظار" : lang === "de" ? "Ausstehend" : lang === "en" ? "Pending" : "In afwachting",
-    unpaid: lang === "ar" ? "غير مدفوع" : lang === "de" ? "Nicht bezahlt" : lang === "en" ? "Unpaid" : "Niet betaald"
+    paid: lang === "ar" ? "\u0645\u062f\u0641\u0648\u0639" : lang === "de" ? "Bezahlt" : lang === "en" ? "Paid" : "Betaald",
+    pending: lang === "ar" ? "\u0642\u064a\u062f \u0627\u0644\u0627\u0646\u062a\u0638\u0627\u0631" : lang === "de" ? "Ausstehend" : lang === "en" ? "Pending" : "In afwachting",
+    unpaid: lang === "ar" ? "\u063a\u064a\u0631 \u0645\u062f\u0641\u0648\u0639" : lang === "de" ? "Nicht bezahlt" : lang === "en" ? "Unpaid" : "Niet betaald",
+    not_required: lang === "ar" ? "\u063a\u064a\u0631 \u0645\u0637\u0644\u0648\u0628" : lang === "de" ? "Nicht erforderlich" : lang === "en" ? "Not required" : "Niet vereist"
   };
   return labels[status] || labels.unpaid;
 }
-
 function fulfillmentText(value) {
   return value === "delivery" ? t("section.delivery") : t("section.pickup");
 }
@@ -1338,6 +1366,11 @@ function fulfillmentText(value) {
 function renderTracking(order = getLastOrder()) {
   const root = $("#trackSteps");
   if (!root) return;
+  if (!featureFlags.orderTrackingEnabled) {
+    root.innerHTML = "";
+    if ($("#trackNote")) $("#trackNote").textContent = t("section.trackingUnavailable");
+    return;
+  }
   const current = normalizeOrderStatus(order?.orderStatus || order?.status || "pending");
   const fulfillment = order?.customer?.fulfillment || "pickup";
   const statuses = trackingStatuses(fulfillment, current);
@@ -1422,6 +1455,10 @@ function getLastOrder() {
 }
 
 async function startOrderTracking(orderNumber) {
+  if (!featureFlags.orderTrackingEnabled) {
+    renderTracking(null);
+    return;
+  }
   const requested = String(orderNumber || "").trim().toUpperCase();
   if (!requested) {
     renderTracking(null);
@@ -1457,6 +1494,7 @@ function formatOrderNumber(orderId) {
 }
 
 async function redirectToMolliePayment(orderPayload) {
+  if (!featureFlags.paymentsEnabled) throw new Error(t("section.mollieUnavailable"));
   const endpoint = paymentConfig.molliePaymentEndpoint;
   if (!endpoint) throw new Error(t("section.mollieUnavailable"));
   await assertMollieReady();
@@ -1498,6 +1536,7 @@ async function redirectToMolliePayment(orderPayload) {
 }
 
 async function assertMollieReady() {
+  if (!featureFlags.paymentsEnabled) return;
   const endpoint = paymentConfig.mollieConfigStatusEndpoint;
   if (!endpoint) return;
   let response;
@@ -1514,6 +1553,11 @@ async function assertMollieReady() {
 }
 
 async function refreshMollieReadiness() {
+  if (!featureFlags.paymentsEnabled) {
+    mollieReady = false;
+    renderCheckout();
+    return;
+  }
   if (restaurantCheckoutOnly || !paymentConfig.onlinePaymentsEnabled || !paymentConfig.mollieConfigStatusEndpoint) {
     mollieReady = false;
     renderCheckout();
@@ -1554,6 +1598,7 @@ function render() {
 }
 
 function renderPaymentReturnMessage() {
+  if (!featureFlags.paymentsEnabled) return;
   const params = new URLSearchParams(window.location.search);
   const payment = params.get("payment");
   if (payment === "success") {
@@ -1654,8 +1699,8 @@ document.querySelectorAll("[data-lang]").forEach((button) => {
 document.querySelectorAll("[data-route]").forEach((link) => {
   link.addEventListener("click", (event) => {
     const route = link.dataset.route || "/";
-  if (!routeSections[route]) return;
-  event.preventDefault();
+    if (!enabledRouteSections()[route]) return;
+    event.preventDefault();
     navigateToRoute(route);
     $(".main-nav")?.classList.remove("open");
     $(".nav-toggle")?.setAttribute("aria-expanded", "false");
@@ -1702,6 +1747,10 @@ $("#goCheckoutBtn").addEventListener("click", () => {
 $("#checkoutForm").addEventListener("submit", submitCart);
 $("#trackForm").addEventListener("submit", (event) => {
   event.preventDefault();
+  if (!featureFlags.orderTrackingEnabled) {
+    renderTracking(null);
+    return;
+  }
   const value = new FormData(event.currentTarget).get("orderNumber");
   const lastOrder = getLastOrder();
   const requested = String(value || "").trim().toUpperCase();

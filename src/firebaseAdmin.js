@@ -77,11 +77,13 @@ const adminText = {
     paymentMethod: "Betaalmethode",
     paymentStatus: "Betaalstatus",
     paymentCash: "Contant",
+    paymentOffline: "Offline",
     paymentRestaurant: "In restaurant",
     paymentStripe: "Stripe",
     paymentMollie: "Mollie",
     paymentPaid: "Betaald",
     paymentPending: "In afwachting",
+    paymentNotRequired: "Niet vereist",
     paymentUnpaid: "Niet betaald",
     orderNew: "Nieuw",
     orderPreparing: "In bereiding",
@@ -185,11 +187,13 @@ const adminText = {
     paymentMethod: "طريقة الدفع",
     paymentStatus: "حالة الدفع",
     paymentCash: "نقداً",
+    paymentOffline: "بدون دفع إلكتروني",
     paymentRestaurant: "في المطعم",
     paymentStripe: "Stripe",
     paymentMollie: "Mollie",
     paymentPaid: "مدفوع",
     paymentPending: "قيد الانتظار",
+    paymentNotRequired: "غير مطلوب",
     paymentUnpaid: "غير مدفوع",
     orderNew: "جديد",
     orderPreparing: "قيد التحضير",
@@ -293,11 +297,13 @@ const adminText = {
     paymentMethod: "Zahlungsmethode",
     paymentStatus: "Zahlungsstatus",
     paymentCash: "Bar",
+    paymentOffline: "Offline",
     paymentRestaurant: "Im Restaurant",
     paymentStripe: "Stripe",
     paymentMollie: "Mollie",
     paymentPaid: "Bezahlt",
     paymentPending: "Ausstehend",
+    paymentNotRequired: "Nicht erforderlich",
     paymentUnpaid: "Nicht bezahlt",
     orderNew: "Neu",
     orderPreparing: "In Vorbereitung",
@@ -401,11 +407,13 @@ const adminText = {
     paymentMethod: "Payment method",
     paymentStatus: "Payment status",
     paymentCash: "Cash",
+    paymentOffline: "Offline",
     paymentRestaurant: "At restaurant",
     paymentStripe: "Stripe",
     paymentMollie: "Mollie",
     paymentPaid: "Paid",
     paymentPending: "Pending",
+    paymentNotRequired: "Not required",
     paymentUnpaid: "Unpaid",
     orderNew: "New",
     orderPreparing: "Preparing",
@@ -1190,12 +1198,12 @@ window.addEventListener("pointerdown", () => {
 }, { once: true });
 
 function paymentMethodLabel(method) {
-  const keys = { cash: "paymentCash", restaurant: "paymentRestaurant", stripe: "paymentStripe", mollie: "paymentMollie" };
+  const keys = { cash: "paymentCash", offline: "paymentOffline", restaurant: "paymentRestaurant", stripe: "paymentStripe", mollie: "paymentMollie" };
   return tr(keys[method] || "paymentCash");
 }
 
 function paymentStatusLabel(status) {
-  const keys = { paid: "paymentPaid", pending: "paymentPending", unpaid: "paymentUnpaid" };
+  const keys = { paid: "paymentPaid", pending: "paymentPending", not_required: "paymentNotRequired", unpaid: "paymentUnpaid" };
   return tr(keys[status] || "paymentUnpaid");
 }
 
