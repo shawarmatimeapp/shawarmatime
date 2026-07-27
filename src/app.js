@@ -707,7 +707,7 @@ function itemCard(item) {
   const name = localized(item.name, lang);
   const description = localized(item.desc, lang) || menuDescriptionPlaceholder();
   return `
-    <article class="food-card" data-product-open="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(name)}">
+    <article class="food-card category-${encodeAttr(item.category)}" data-category="${encodeAttr(item.category)}" data-product-open="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(name)}">
       <div class="food-image food-card-media">
         <img src="${item.image}" alt="${name}" loading="lazy" decoding="async" />
         ${renderBadge(item.badge)}

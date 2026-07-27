@@ -734,6 +734,41 @@ body.no-glow .loader span {
   object-position: center;
   background: #1b0b07;
 }
+.food-card[data-category="drinks"] .food-card-media {
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    radial-gradient(ellipse at center 70%, rgba(245,197,66,.16), transparent 44%),
+    linear-gradient(145deg, rgba(255,122,26,.12), rgba(10,4,3,.08) 42%),
+    rgba(16, 7, 5, .96);
+}
+.food-card[data-category="drinks"] .food-card-media::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.42);
+  filter: blur(10px);
+  transform: translateY(4px);
+  z-index: 0;
+}
+.food-card[data-category="drinks"] .food-card-media img {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  filter: drop-shadow(0 18px 18px rgba(0,0,0,.46));
+  position: relative;
+  z-index: 1;
+}
+.food-card[data-category="drinks"] .food-card-media .badge {
+  z-index: 2;
+}
 .offer-card img, .gallery-grid img {
   height: 280px;
   object-fit: cover;
