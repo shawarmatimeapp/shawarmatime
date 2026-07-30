@@ -47,6 +47,7 @@
             <button data-panel="homePanel" class="active"><span>D</span><b data-admin-i18n="navDashboard">Dashboard</b></button>
             <button data-panel="ordersPanel" id="ordersNavBtn"><span>O</span><b data-admin-i18n="navOrders">Bestellingen</b><em class="nav-badge hidden" id="ordersBadge">0</em></button>
             <button data-panel="menuPanel"><span>M</span><b data-admin-i18n="navMenu">Menu</b></button>
+            <button data-panel="exportPanel"><span>E</span><b data-admin-i18n="navMenuExport">Menu Export</b></button>
             <button data-panel="categoriesPanel"><span>C</span><b data-admin-i18n="navCategories">Categorieen</b></button>
             <button data-panel="contactPanel"><span>S</span><b data-admin-i18n="navSettings">Instellingen</b></button>
             <button data-panel="notificationsPanel"><span>N</span><b data-admin-i18n="navNotifications">Meldingen</b></button>
@@ -100,6 +101,19 @@
           <section id="menuPanel" class="admin-panel">
             <div class="panel-head"><h2 data-admin-i18n="menuTitle">Menu-items</h2><button class="btn primary" data-add="menu" type="button" data-admin-i18n="addItem">Item toevoegen</button></div>
             <div class="editor-list" id="menuEditor"></div>
+          </section>
+
+          <section id="exportPanel" class="admin-panel">
+            <div class="panel-head"><h2 data-admin-i18n="menuExportTitle">Menu Export</h2></div>
+            <article class="admin-card menu-export-card">
+              <p data-admin-i18n="menuExportIntro">Export the current live Firestore menu for Thuisbezorgd review.</p>
+              <div class="menu-export-actions">
+                <button class="btn primary" id="exportMenuPdfBtn" type="button" data-admin-i18n="exportMenuPdf">Export menu as PDF</button>
+                <button class="btn ghost" id="exportMenuCsvBtn" type="button" data-admin-i18n="exportMenuCsv">Export menu as CSV</button>
+                <button class="btn ghost" id="previewThuisbezorgdMenuBtn" type="button" data-admin-i18n="previewThuisbezorgdMenu">Preview Thuisbezorgd menu page</button>
+              </div>
+              <p class="form-note" id="menuExportStatus"></p>
+            </article>
           </section>
 
           <section id="categoriesPanel" class="admin-panel">

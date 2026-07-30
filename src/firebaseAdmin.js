@@ -1,4 +1,4 @@
-import { badgeOptions, defaultSiteData, loadSiteData, normalizeCategoryOrder, saveSiteData, ui } from "./data.js";
+import { badgeOptions, defaultSiteData, loadSiteData, localized, normalizeCategoryOrder, saveSiteData, ui } from "./data.js";
 import {
   isFirebaseConfigured,
   loadFirebaseSiteData,
@@ -51,6 +51,7 @@ const adminText = {
     navOrders: "Bestellingen",
     navHome: "Home",
     navMenu: "Menu",
+    navMenuExport: "Menu Export",
     navOffers: "Aanbiedingen",
     navReviews: "Reviews",
     navBanners: "Banners",
@@ -89,6 +90,20 @@ const adminText = {
     orderPreparing: "In bereiding",
     orderCompleted: "Afgerond",
     menuTitle: "Menu-items",
+    menuExportTitle: "Menu Export",
+    menuExportIntro: "Exporteer het huidige live Firestore-menu voor controle door Thuisbezorgd.",
+    exportMenuPdf: "Export menu als PDF",
+    exportMenuCsv: "Export menu als CSV",
+    previewThuisbezorgdMenu: "Preview Thuisbezorgd menu pagina",
+    menuExportReady: "Live menu geladen voor export.",
+    menuExportFailed: "Menu export mislukt.",
+    menuExportCategory: "Categorie",
+    menuExportName: "Productnaam",
+    menuExportDescription: "Beschrijving",
+    menuExportImageUrl: "Afbeelding URL",
+    menuExportAvailability: "Beschikbaarheid",
+    menuExportAvailable: "Beschikbaar",
+    menuExportUnavailable: "Niet beschikbaar",
     offersTitle: "Aanbiedingen",
     reviewsTitle: "Reviews",
     bannersTitle: "Banners",
@@ -161,6 +176,7 @@ const adminText = {
     navOrders: "الطلبات",
     navHome: "الرئيسية",
     navMenu: "القائمة",
+    navMenuExport: "تصدير القائمة",
     navOffers: "العروض",
     navReviews: "التقييمات",
     navBanners: "البنرات",
@@ -199,6 +215,20 @@ const adminText = {
     orderPreparing: "قيد التحضير",
     orderCompleted: "مكتمل",
     menuTitle: "عناصر القائمة",
+    menuExportTitle: "تصدير القائمة",
+    menuExportIntro: "صدّر قائمة Firestore الحالية لمراجعة Thuisbezorgd.",
+    exportMenuPdf: "تصدير القائمة PDF",
+    exportMenuCsv: "تصدير القائمة CSV",
+    previewThuisbezorgdMenu: "معاينة صفحة Thuisbezorgd",
+    menuExportReady: "تم تحميل القائمة المباشرة للتصدير.",
+    menuExportFailed: "فشل تصدير القائمة.",
+    menuExportCategory: "التصنيف",
+    menuExportName: "اسم المنتج",
+    menuExportDescription: "الوصف",
+    menuExportImageUrl: "رابط الصورة",
+    menuExportAvailability: "التوفر",
+    menuExportAvailable: "متوفر",
+    menuExportUnavailable: "غير متوفر",
     offersTitle: "العروض والخصومات",
     reviewsTitle: "التقييمات",
     bannersTitle: "البنرات",
@@ -271,6 +301,7 @@ const adminText = {
     navOrders: "Bestellungen",
     navHome: "Start",
     navMenu: "Menü",
+    navMenuExport: "Menü Export",
     navOffers: "Angebote",
     navReviews: "Bewertungen",
     navBanners: "Banner",
@@ -309,6 +340,20 @@ const adminText = {
     orderPreparing: "In Vorbereitung",
     orderCompleted: "Abgeschlossen",
     menuTitle: "Menüpunkte",
+    menuExportTitle: "Menü Export",
+    menuExportIntro: "Exportiere das aktuelle Live-Firestore-Menü für die Thuisbezorgd-Prüfung.",
+    exportMenuPdf: "Menü als PDF exportieren",
+    exportMenuCsv: "Menü als CSV exportieren",
+    previewThuisbezorgdMenu: "Thuisbezorgd-Menü ansehen",
+    menuExportReady: "Live-Menü für Export geladen.",
+    menuExportFailed: "Menüexport fehlgeschlagen.",
+    menuExportCategory: "Kategorie",
+    menuExportName: "Produktname",
+    menuExportDescription: "Beschreibung",
+    menuExportImageUrl: "Bild-URL",
+    menuExportAvailability: "Verfügbarkeit",
+    menuExportAvailable: "Verfügbar",
+    menuExportUnavailable: "Nicht verfügbar",
     offersTitle: "Angebote",
     reviewsTitle: "Bewertungen",
     bannersTitle: "Banner",
@@ -381,6 +426,7 @@ const adminText = {
     navOrders: "Orders",
     navHome: "Home",
     navMenu: "Menu",
+    navMenuExport: "Menu Export",
     navOffers: "Offers",
     navReviews: "Reviews",
     navBanners: "Banners",
@@ -419,6 +465,20 @@ const adminText = {
     orderPreparing: "Preparing",
     orderCompleted: "Completed",
     menuTitle: "Menu items",
+    menuExportTitle: "Menu Export",
+    menuExportIntro: "Export the current live Firestore menu for Thuisbezorgd review.",
+    exportMenuPdf: "Export menu as PDF",
+    exportMenuCsv: "Export menu as CSV",
+    previewThuisbezorgdMenu: "Preview Thuisbezorgd menu page",
+    menuExportReady: "Live menu loaded for export.",
+    menuExportFailed: "Menu export failed.",
+    menuExportCategory: "Category",
+    menuExportName: "Product name",
+    menuExportDescription: "Description",
+    menuExportImageUrl: "Image URL",
+    menuExportAvailability: "Availability",
+    menuExportAvailable: "Available",
+    menuExportUnavailable: "Unavailable",
     offersTitle: "Offers",
     reviewsTitle: "Reviews",
     bannersTitle: "Banners",
@@ -721,6 +781,18 @@ $("#testSoundBtn")?.addEventListener("click", async () => {
   await playOrderSound(0, true);
 });
 
+$("#exportMenuPdfBtn")?.addEventListener("click", () => {
+  exportMenuPdf();
+});
+
+$("#exportMenuCsvBtn")?.addEventListener("click", () => {
+  exportMenuCsv();
+});
+
+$("#previewThuisbezorgdMenuBtn")?.addEventListener("click", () => {
+  window.open("../thuisbezorgd-menu/", "_blank", "noopener,noreferrer");
+});
+
 async function bootAdmin() {
   showRestoringSession();
   loading(true);
@@ -957,6 +1029,151 @@ function printKitchenTicket(order) {
   win.document.close();
   win.focus();
   win.print();
+}
+
+async function getFreshMenuExportRows() {
+  if (!currentSession) throw new Error("Admin session is required.");
+  siteData = await loadContent();
+  renderAll();
+  const rows = (siteData.menu || [])
+    .map((item) => {
+      const isAvailable = item.available !== false && item.hidden !== true && item.deleted !== true;
+      return {
+        category: categoryLabelAdmin(item.category),
+        name: localized(item.name, adminLang) || localized(item.name, "nl") || localized(item.name, "en"),
+        description: localized(item.desc, adminLang) || localized(item.desc, "nl") || localized(item.desc, "en"),
+        price: formatMenuExportPrice(item.price),
+        imageUrl: item.image || "",
+        availability: isAvailable ? tr("menuExportAvailable") : tr("menuExportUnavailable")
+      };
+    })
+    .filter((row) => row.name || row.description || row.price || row.imageUrl);
+  const status = $("#menuExportStatus");
+  if (status) status.textContent = `${tr("menuExportReady")} ${rows.length} items.`;
+  return rows;
+}
+
+async function exportMenuCsv() {
+  loading(true);
+  try {
+    const rows = await getFreshMenuExportRows();
+    const headers = menuExportHeaders();
+    const csv = [
+      headers.map(csvCell).join(","),
+      ...rows.map((row) => [
+        row.category,
+        row.name,
+        row.description,
+        row.price,
+        row.imageUrl,
+        row.availability
+      ].map(csvCell).join(","))
+    ].join("\r\n");
+    downloadBlob(new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" }), `shawarma-time-menu-${adminLang}.csv`);
+    note(tr("menuExportReady"));
+  } catch (error) {
+    console.error("[MenuExport] CSV export failed", error);
+    note(localizedError(error, "menuExportFailed"));
+  } finally {
+    loading(false);
+  }
+}
+
+async function exportMenuPdf() {
+  loading(true);
+  try {
+    const rows = await getFreshMenuExportRows();
+    const printWindow = window.open("", "_blank", "width=1120,height=820");
+    if (!printWindow) {
+      note(tr("menuExportFailed"));
+      return;
+    }
+    printWindow.document.write(menuExportPrintHtml(rows));
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    note(tr("menuExportReady"));
+  } catch (error) {
+    console.error("[MenuExport] PDF export failed", error);
+    note(localizedError(error, "menuExportFailed"));
+  } finally {
+    loading(false);
+  }
+}
+
+function menuExportHeaders() {
+  return [
+    tr("menuExportCategory"),
+    tr("menuExportName"),
+    tr("menuExportDescription"),
+    tr("price"),
+    tr("menuExportImageUrl"),
+    tr("menuExportAvailability")
+  ];
+}
+
+function menuExportPrintHtml(rows) {
+  const headers = menuExportHeaders();
+  return `<!doctype html>
+    <html lang="${adminLang}" dir="${adminLang === "ar" ? "rtl" : "ltr"}">
+      <head>
+        <meta charset="utf-8" />
+        <title>Shawarma Time - ${escapeHtml(tr("menuExportTitle"))}</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { margin: 0; padding: 28px; color: #24130c; font-family: Arial, sans-serif; background: #fffdf8; }
+          h1 { margin: 0 0 6px; color: #2a1509; font-size: 28px; }
+          p { margin: 0 0 22px; color: #6d4c2b; }
+          table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+          th, td { border: 1px solid #ead9b8; padding: 8px; vertical-align: top; word-break: break-word; }
+          th { background: #f5c542; color: #24130c; text-align: start; }
+          img { width: 54px; height: 54px; object-fit: cover; border-radius: 8px; display: block; margin-bottom: 4px; }
+          .image-url { font-size: 10px; color: #6d4c2b; }
+          @media print {
+            body { padding: 14mm; background: #fff; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Shawarma Time</h1>
+        <p>${escapeHtml(tr("menuExportTitle"))} - ${new Date().toLocaleDateString(adminLang === "de" ? "de-DE" : "nl-NL")}</p>
+        <table>
+          <thead>
+            <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${rows.map((row) => `<tr>
+              <td>${escapeHtml(row.category)}</td>
+              <td>${escapeHtml(row.name)}</td>
+              <td>${escapeHtml(row.description)}</td>
+              <td>${escapeHtml(row.price)}</td>
+              <td>${row.imageUrl ? `<img src="${escapeAttr(row.imageUrl)}" alt="" /><span class="image-url">${escapeHtml(row.imageUrl)}</span>` : ""}</td>
+              <td>${escapeHtml(row.availability)}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </body>
+    </html>`;
+}
+
+function csvCell(value) {
+  return `"${String(value || "").replaceAll('"', '""')}"`;
+}
+
+function downloadBlob(blob, filename) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(link.href);
+}
+
+function formatMenuExportPrice(value) {
+  const numeric = Number(String(value || "").replace(/[^\d.,-]/g, "").replace(",", "."));
+  return Number.isFinite(numeric) && String(value || "").trim() !== "" ? formatOrderTotal(numeric) : String(value || "");
 }
 
 function statusOption(value, selected) {

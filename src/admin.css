@@ -79,6 +79,21 @@
   letter-spacing: 0;
 }
 
+.menu-export-card {
+  display: grid;
+  gap: 16px;
+}
+
+.menu-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.menu-export-card .form-note {
+  margin: 0;
+}
+
 .notification-test-actions {
   display: flex;
   flex-wrap: wrap;
@@ -961,8 +976,13 @@ html[dir="rtl"] .admin-toast {
   .order-meta,
   .order-stats,
   .order-tools,
+  .menu-export-actions,
   .media-grid {
     grid-template-columns: 1fr;
+  }
+
+  .menu-export-actions {
+    display: grid;
   }
 
   .admin-sidebar nav button {
