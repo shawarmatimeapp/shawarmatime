@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thuisbezorgd menu | Shawarma Time</title>
+    <meta name="robots" content="noindex,follow" />
+    <link rel="icon" href="../favicon.ico?v=20260617-st-gold" sizes="any" />
+    <link rel="icon" href="../favicon-32x32.png?v=20260617-st-gold" type="image/png" />
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20260617-st-gold" />
+    <link rel="stylesheet" href="../src/thuisbezorgd-menu.css" />
+  </head>
+  <body>
+    <header class="tb-header">
+      <a class="tb-brand" href="../">
+        <span>ST</span>
+        <strong>Shawarma Time</strong>
+      </a>
+      <nav class="tb-languages" aria-label="Language">
+        <button type="button" data-lang="ar">AR</button>
+        <button type="button" data-lang="nl">NL</button>
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="de">DE</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="tb-hero">
+        <p class="tb-eyebrow" data-i18n="eyebrow">Thuisbezorgd catalogue</p>
+        <h1 data-i18n="title">Menu review page</h1>
+        <p data-i18n="intro">A live catalogue of Shawarma Time products for Thuisbezorgd staff review.</p>
+        <div class="tb-actions">
+          <button class="tb-button primary" type="button" id="downloadPdfBtn" data-i18n="downloadPdf">Download menu as PDF</button>
+          <button class="tb-button" type="button" id="downloadCsvBtn" data-i18n="downloadCsv">Download menu as CSV</button>
+        </div>
+      </section>
+
+      <section class="tb-status" id="statusMessage" role="status">Loading menu...</section>
+      <section class="tb-menu" id="menuRoot" aria-live="polite"></section>
+    </main>
+
+    <script type="module" src="../src/thuisbezorgdMenu.js"></script>
+  </body>
+</html>

@@ -13,6 +13,7 @@ export default defineConfig({
       input: {
         main: resolve(projectRoot, "index.html"),
         admin: resolve(projectRoot, "admin/index.html"),
+        thuisbezorgdMenu: resolve(projectRoot, "thuisbezorgd-menu/index.html"),
         paymentSuccess: resolve(projectRoot, "payment-success.html")
       }
     }
